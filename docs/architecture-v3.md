@@ -78,6 +78,13 @@ Each agent owns exactly one domain. No agent overlaps. ATHENA-Prime delegates by
 
 **Why Red-ATHENA uses a different model family:** If ATHENA-Prime has a systematic bias — in training data, fine-tuning, or objective function specification — Claude running Red ATHENA shares that bias identically. A genuine adversarial check requires a different training lineage. Red ATHENA runs the same advisory through Gemini or GPT-4o via API and returns its strongest counter-argument. This is not a UX feature. It is a safety requirement.
 
+**Red ATHENA fallback protocol:** Red ATHENA calls an external API (Google/OpenAI). If that API is unavailable — due to outage, network isolation, or air-gapped deployment — the following fallback applies:
+- Urgency ≥9: Advisory is **held** and not delivered. An alert is sent to the human operator: "Red ATHENA unavailable. Advisory #[ID] withheld pending adversarial review. Estimated restoration: [time]." Humans can override the hold with explicit authorization.
+- Urgency 7–8: Advisory is delivered with a prominent banner: **"RED ATHENA CHALLENGE UNAVAILABLE — adversarial review pending. Treat confidence score as provisional."**
+- Urgency <7: Not subject to Red ATHENA; unaffected.
+
+For air-gapped classified deployments, a local Red ATHENA instance using an open-weight model (Llama 3.1 70B or similar) is deployed as a permanent fallback. It is a weaker adversary than Gemini/GPT-4o but better than no challenge at all. Its use is always disclosed in the advisory header.
+
 ---
 
 ## Simulation Engine — What It Actually Does
@@ -175,9 +182,21 @@ Begins **immediately** on first advisory interaction. Every failure trajectory (
 | Cross-domain skill transfer | Week 3–4 | Skills from economic domain applying to legislative, diplomatic |
 | Meaningful accuracy improvement | Month 1–2 | +8–15% accuracy improvement vs. base model on domain-specific tasks (estimated based on MetaClaw benchmarks scaled to governance tasks) |
 
+### How Skills Are Stored and Retrieved (Fast Adaptation Mechanism)
+
+Fast adaptation does not modify model weights. Skills are stored as structured documents in a **vector database (Pinecone)** and retrieved at inference time via semantic search. When ATHENA-Prime receives a query, MetaEvolver retrieves the top-K most relevant governance skills and injects them into the system prompt as retrieved context. This is RAG-based skill injection — no special training infrastructure required, works immediately, and is fully reversible (remove a bad skill by deleting it from the store).
+
+Each skill record contains: trigger conditions, the learned behavior, the source interaction that generated it, a confidence score, a validity window (some governance facts expire), and a usage counter.
+
 ### Slow Adaptation (MetaClaw θ — LoRA Fine-tuning)
 
 **Requires explicit human authorization before each run.** MetaEvolver identifies fine-tune windows and presents: "Ready to run LoRA update. Training set: 847 validated advisory interactions. Estimated improvement: +4% accuracy. Estimated risk: low (no distribution shift detected). Authorize?" Human must approve.
+
+**LoRA infrastructure reality check:** As of March 2026, Anthropic offers fine-tuning for Claude models via their API, but availability for Opus specifically should be confirmed at build time. If Claude Opus fine-tuning is unavailable, two alternatives exist:
+1. Fine-tune Claude Sonnet 4.6 (available) and use it for domain-specific tasks while Opus handles final synthesis
+2. Use an open-weight model (Llama 3.1 70B or Mistral Large) as the fine-tunable base for domain agents, with Claude Opus reserved for orchestration where fine-tuning is not required
+
+This is a dependency to verify before Phase 3, not a blocker for Phase 1 or 2.
 
 | Milestone | Timeline | What Happens |
 |-----------|----------|--------------|
@@ -229,6 +248,70 @@ and does not constitute an executive order, agency rule, or binding government d
 All advisories are preserved as Presidential Records and may be subject to congressional
 oversight and eventual FOIA disclosure.
 ```
+
+---
+
+## Access Control — Who Can Use ATHENA
+
+ATHENA has five access tiers, enforced at the API gateway layer via PIV/CAC authentication and role-based access control. Tier assignment is made by the ATHENA Oversight Board (see Governance below) and cannot be self-granted.
+
+| Tier | Who | Capabilities | Constraints |
+|------|-----|-------------|-------------|
+| **Executive** | President, VP, Chief of Staff | All advisories, all classifications, full simulation, Red ATHENA debate transcripts | Session logged; no offline export without SecOps sign-off |
+| **Cabinet** | Cabinet secretaries, NSC Principals | All advisories in their domain + cross-domain at Unclassified/FOUO; full simulation | Domain-scoped by default; cross-domain requires explicit request |
+| **Staff** | NSC staff, senior agency officials, senior Congressional staff (oversight only) | Unclassified + FOUO advisories; read-only on Red ATHENA transcripts; Tier 1 simulation | No Tier 2 simulation without supervisor authorization |
+| **Oversight** | GAO, IG offices, Congressional oversight committees | Read-only access to all unclassified outputs and reasoning chains via Congressional Oversight API | Audit trail; no simulation access |
+| **Research** | Authorized academic/research partners | Anonymized, delayed (30-day lag), unclassified outputs only; no simulation | NDA required; no real-time access |
+
+All access is authenticated via PIV/CAC + MFA. Session logs are append-only. No tier can grant access to a higher tier.
+
+---
+
+## Governance of ATHENA — Who Runs It
+
+This is the hardest question in the entire system design. The operators of ATHENA have more influence over US governance than any individual advisor in history. The governance structure must be as carefully designed as the system itself.
+
+### The ATHENA Oversight Board
+
+A 7-member independent board with staggered 4-year terms (not aligned with Presidential election cycles):
+- 2 members appointed by Congress (1 per party, confirmed by Senate)
+- 2 members appointed by the President (confirmed by Senate)
+- 1 member appointed by the Supreme Court Chief Justice
+- 1 member from the National Academy of Sciences
+- 1 member from the American Bar Association
+
+**Powers:**
+- Approves all LoRA fine-tune runs before execution
+- Reviews the skill library quarterly for bias or over-reliance
+- Approves any change to the CHI weighting formula
+- Can suspend ATHENA operations pending review (requires 5/7 majority)
+- Publishes an annual public report on ATHENA's performance and constitutional compliance
+
+**What the Board cannot do:**
+- Direct ATHENA to produce a specific recommendation
+- Access classified advisory content without security clearance
+- Override a ConstitutionalGuard rejection
+
+### Operator Independence
+
+ATHENA is built and maintained by a government entity or a government contractor under strict conflict-of-interest rules:
+- The contractor cannot hold positions in the companies or industries ATHENA advises on
+- No commercial relationship between the operator and any entity that receives ATHENA advisories
+- Operator employees cannot accept employment from entities that received ATHENA advisories within 2 years of their tenure ending (revolving door rule)
+- All operator employees with access to the LoRA training pipeline require security clearance and annual ethics certification
+
+### The Authorization Chain for Fine-Tuning
+
+No LoRA fine-tune runs without this chain:
+1. MetaEvolver proposes training run with full specification
+2. ConstitutionalGuard reviews training data for constitutional compliance
+3. Lead ATHENA engineer signs off on technical safety
+4. ATHENA Oversight Board votes (requires 4/7 majority)
+5. Training runs in shadow environment for 2 weeks
+6. Board reviews shadow output deltas
+7. Board approves production deployment (requires 4/7 majority)
+
+This process takes approximately 3–5 weeks. It is intentionally slow.
 
 ---
 
@@ -322,7 +405,7 @@ V2 addressed data security and access control. V3 adds the threat model unique t
 ## Realistic Build Timeline
 
 ### Phase 1 — Foundation (Months 1–4)
-Data ingestion layer for all free government APIs (FRED, Congress.gov, USASpending, BLS, BEA, GDELT). Wikidata base layer ingested and indexed. 11-agent architecture deployed with Claude Sonnet 4.6 for all agents. ATHENA-Prime upgraded to Opus. Merkle audit log. Legal framework document published. CHI calibrated against 2000–2020 historical data. ImplementationAgent built. Red ATHENA (Gemini) integrated.
+Data ingestion layer for all free government APIs (FRED, Congress.gov, USASpending, BLS, BEA, GDELT). Wikidata base layer ingested and indexed. 11-agent architecture deployed with Claude Sonnet 4.6 for all agents. ATHENA-Prime upgraded to Opus. Merkle audit log. Legal framework document published. CHI calibrated against 2000–2024 historical data. ImplementationAgent built. Red ATHENA (Gemini) integrated. ATHENA Oversight Board constituted.
 
 **Cost estimate: $180K–$250K (primarily engineering + API costs)**
 

@@ -206,11 +206,13 @@ Every ATHENA interface is built around a single principle: **decision support at
 - Branch readiness scores (Army, Navy, Air Force, Marines, Space Force, Cyber Command)
 - Deployment status: how many forces deployed, where, for what
 
-**War Game Launcher (bottom):**
-- Scenario presets: Taiwan Strait Crisis / Iran Escalation / NATO Article 5 Trigger / Cyber Attack on Infrastructure
-- Custom scenario builder: name actors, starting conditions, objectives
-- Output: probability of outcomes, escalation trees, recommended US posture at each decision node
-- All scenarios are clearly labeled "ADVISORY SIMULATION — NOT INTELLIGENCE ASSESSMENT"
+**Strategic Scenario Panel (bottom):**
+- Scenario presets: Taiwan Strait Crisis / Iran Escalation / NATO Article 5 Trigger / Cyber Attack on Critical Infrastructure
+- These are **game-theoretic scenarios (Tier 3)**, not military simulations. ATHENA models actor decisions, incentive structures, and escalation logic using open-source data — not classified intelligence.
+- Custom scenario builder: name actors, starting conditions, stated objectives
+- Output: decision tree of likely moves/counter-moves, Nash equilibrium analysis, recommended US diplomatic/deterrence posture at each node
+- Every output labeled: **"OPEN-SOURCE GAME-THEORETIC ANALYSIS — NOT A MILITARY INTELLIGENCE ASSESSMENT. Does not incorporate classified data."**
+- Tactical military outcome simulation (casualties, force-on-force) is explicitly out of scope
 
 ---
 
@@ -289,20 +291,36 @@ Every ATHENA interface is built around a single principle: **decision support at
 
 **Layout:** Simulation builder (left) + results (center) + archive (right)
 
-**Simulation Types:**
-- Economic: CGE model for fiscal/monetary policy changes
-- Social: Agent-based population modeling for policy impacts
-- Geopolitical: Game-theoretic scenario for diplomatic/military decisions
-- Climate: IPCC-integrated models for climate policy
-- Crisis: Stress tests for infrastructure, financial, public health crises
-- Long-range: 25-year consequence mapping for major structural decisions
+**Simulation Tiers** (v3 — honest capability model):
+
+*Tier 1 — Validated External Model Interface (highest fidelity)*
+- Economic: CBO CBOLT projections + OMB baseline — ATHENA reads, contextualizes, presents
+- Monetary: Federal Reserve FRB/US published scenarios via FRED API
+- Climate: IPCC AR6 integrated assessment outputs applied to specific US policy questions
+- These are authoritative third-party models; ATHENA is the interface, not the engine
+
+*Tier 2 — Monte Carlo Scenario Modeling (medium fidelity, clearly labeled)*
+- Natural language input: "What happens if we raise the minimum wage to $20/hour nationwide?"
+- ATHENA runs probabilistic scenario analysis (Claude Opus + extended thinking)
+- Every output labeled: **"AI-assisted scenario modeling — not an econometric simulation. Cross-reference CBO projections."**
+- Calibration score visible on every output; validated quarterly against actual outcomes
+
+*Tier 3 — Game-Theoretic Modeling (LLM-native, reasonable fidelity)*
+- Multi-party negotiation, Nash equilibrium, BATNA, escalation trees
+- Strongest simulation tier for ATHENA natively; no heavy disclaimers needed here
+- Historical precedent drawn from 200+ published game theory papers in research corpus
+
+*Out of scope (explicitly stated on the UI):*
+- Real-time financial market simulation
+- Tactical-level military outcome simulation (requires classified data)
+- Demographic projection (deferred to Census Bureau published projections)
 
 **Simulation Builder:**
-- Type selector (tabs)
-- Natural language input: "What happens if we raise the minimum wage to $20/hour nationwide?"
+- Tier selector (1 / 2 / 3) — user explicitly chooses fidelity level
+- Natural language input field
 - Parameter controls appear dynamically based on detected simulation type
-- Run time estimate
-- "Run" button → triggers SimulationEngine agent
+- Fidelity disclaimer shown before every Tier 2 run
+- "Run" button → routes to appropriate simulation pathway
 
 **Results Display:**
 - Probability distribution of primary outcome (histogram)

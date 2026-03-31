@@ -236,8 +236,8 @@ This design draws on the following real systems and published research:
 | Phase | Months | Deliverables | Cost (cumulative) |
 |-------|--------|-------------|-------------------|
 | 1 — Foundation | 1–4 | All free government APIs, Wikidata KG base, 11 agents, CHI calibrated, legal framework, Merkle audit, ImplementationAgent | $180K–$250K |
-| 2 — Intelligence Layer | 5–8 | OpenSecrets, ACLED/SIPRI, government KG extension, Monte Carlo simulation, Research Observatory, congressional oversight API, MetaClaw fast adaptation | $300K–$450K |
-| 3 — Self-Evolution | 6–12 | First human-authorized LoRA cycles, calibration validation, shadow deployment, skill library 500+ | $500K–$700K |
+| 2 — Intelligence Layer | 5–8 | OpenSecrets, ACLED/SIPRI, government KG extension, Monte Carlo simulation, Research Observatory, congressional oversight API, MetaClaw fast adaptation live | $300K–$450K |
+| 3 — Self-Evolution | 9–12 | First human-authorized LoRA cycles, calibration validation, shadow deployment, skill library 500+ | $500K–$700K |
 | 4 — Hardening | Year 2 | External security red team, FedRAMP ATO process, privacy impact assessment, expert review panel, published performance benchmarks | $1.2M–$1.8M |
 
 **Estimated Year 1 Cost: $500K–$700K** for a production-grade MVP. The $5.9M figure in v2 was for a complete government deployment with FedRAMP, which is Year 2 work.
