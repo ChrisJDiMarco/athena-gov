@@ -8,13 +8,13 @@ ATHENA is a concept design for the world's first **self-evolving, values-aligned
 
 ## What This Is
 
-This repository contains the complete design specification, architecture documents, interactive mockups, and working Thinklet prototype for ATHENA v2.
+This repository contains the complete design specification, architecture documents, interactive mockups, and working Thinklet prototype for ATHENA v3 — the rationalized design that can actually be built, deployed, and trusted.
 
 This is not a chatbot. It is not a dashboard. It is the blueprint for a **living intelligence** that:
 
 - Synthesizes 800+ real-time data streams (federal data, intelligence, science, economics, climate, diplomacy)
-- Runs a fleet of 47 specialized AI agents that debate, challenge, and refine each other
-- **Self-evolves** via MetaClaw (AIMING Lab, 2026) — accumulating governance skills from every conversation and every outcome tracked, running LoRA fine-tuning during idle windows
+- Runs a fleet of 11 specialized AI agents (consolidated from v2's 47 — coordination overhead grows non-linearly)
+- **Self-evolves** via MetaClaw (AIMING Lab, 2026) — synthesizing governance skills within hours of first interactions, with human-authorized LoRA fine-tuning beginning in weeks
 - Conducts **autonomous research** (AutoResearchClaw-style 17-stage pipeline) when it detects knowledge gaps
 - **Adversarially challenges its own recommendations** via Red ATHENA before delivering them
 - Optimizes for a single objective: the **Civilizational Health Index (CHI)** — a composite of human flourishing, ecological health, social cohesion, scientific progress, peace, and economic vitality
@@ -42,6 +42,7 @@ athena-gov/
 ├── docs/
 │   ├── architecture-v1.md             ← v1 system design (10-layer architecture)
 │   ├── architecture-v2.md             ← v2 full spec (MetaClaw, AutoResearch, Red ATHENA, CHI)
+│   ├── architecture-v3.md             ← v3 rationalized design (corrected agents, simulation, CHI, legal)
 │   ├── build-blueprint.md             ← Complete UX/UI spec for every tab + technical stack
 │   └── research-landscape.md         ← Survey of comparable systems (Palantir, UAE, DOGE, Estonia)
 │
@@ -91,6 +92,8 @@ Before any advisory with Urgency ≥ 7 is delivered, a dedicated adversarial ins
 - Forces Primary ATHENA to respond and revise
 - Confidence score is updated to reflect the debate outcome
 
+**Critical design constraint:** Red ATHENA runs on a *different model family* (Gemini 1.5 Pro or GPT-4o) — not Claude. Same-model adversarial challenge shares the same systematic biases. A genuine adversarial check requires a different training lineage.
+
 No recommendation survives delivery without first surviving its own cross-examination.
 
 ### 4. Constitutional Values (Hardcoded)
@@ -113,13 +116,19 @@ ATHENA has zero execution authority. It advises. Humans decide. Every recommenda
 
 ## The Self-Evolution Trajectory
 
+ATHENA's self-learning operates on two speeds simultaneously. Fast adaptation (skill synthesis) begins within hours. Slow adaptation (LoRA fine-tuning) is human-authorized and begins in weeks — not years.
+
 ```
-LAUNCH    → Skills: 0     → Accuracy: ~78%  → Calibration: poor
-MONTH 6   → Skills: ~800  → Accuracy: ~83%  → Calibration: improving
-YEAR 1    → Skills: ~2,500 → Accuracy: ~87% → Calibration: good
-YEAR 3    → Skills: ~8,000 → Accuracy: ~92% → Calibration: excellent
-YEAR 10   → Skills: 25,000+→ Accuracy: 95%+ → Exceeds any individual human expert
+HOURS 1-24  → First skill candidates synthesized from advisory interactions
+DAYS 2-7    → Skill library: 50-200 skills  → Measurable calibration baseline established
+WEEK 2-3    → First human-authorized LoRA fine-tune candidate identified
+MONTH 1-2   → Accuracy improvement: +8-15% vs. base model on governance tasks
+MONTH 3-6   → Skill library: 500+ skills   → Advisory quality noticeably specialized
+MONTH 6-12  → Accuracy: ~87-90%            → Expert-calibration-level on most domains
+YEAR 1+     → Diminishing returns; full retraining may be warranted
 ```
+
+*Skill synthesis timeline based on MetaClaw benchmarks (arxiv:2603.17187). LoRA requires explicit human authorization before each run — autonomous fine-tuning on unvalidated governance data is a safety risk, not a feature.*
 
 ---
 
@@ -130,16 +139,22 @@ YEAR 10   → Skills: 25,000+→ Accuracy: 95%+ → Exceeds any individual human
 | Desktop app | Electron + React 19 + TypeScript |
 | iPhone app | Swift + SwiftUI + Whisper |
 | Public web | Next.js 15 |
-| AI orchestration | Anthropic Agent SDK + Claude Opus 4.6 / Sonnet 4.6 / Haiku 4.5 |
-| Self-evolution | MetaClaw (SkillRL) + Cloud LoRA fine-tuning |
+| AI orchestration | Anthropic Agent SDK + Claude Opus 4.6 / Sonnet 4.6 |
+| Adversarial challenge | Gemini 1.5 Pro or GPT-4o (different model family — required) |
+| Self-evolution | MetaClaw (SkillRL) + human-authorized LoRA fine-tuning |
 | Background monitoring | OpenClaw autonomous agents |
-| Event streaming | Apache Kafka (8,000+ events/sec) + Apache Flink |
-| Knowledge graph | Neo4j Enterprise (500M+ nodes) |
-| Database | PostgreSQL (Aurora Serverless) + Redis |
-| Data ingestion | 800+ connectors (APIs, Firecrawl, custom scrapers) |
+| Event streaming | Apache Kafka + Apache Flink |
+| Knowledge graph | Neo4j + **Wikidata** as foundation layer (100M+ entities, not built from scratch) |
+| Audit log | PostgreSQL append-only + Merkle tree (not blockchain) |
+| Economic data | Federal Reserve FRED API (800K+ time series) |
+| Legislative data | Congress.gov official API |
+| World events | **GDELT Project** (all global news, structured, real-time, free) |
+| Campaign finance | OpenSecrets API |
+| Federal spending | USASpending.gov API |
+| Conflict data | ACLED + Uppsala Conflict Data Program |
 | Infrastructure | AWS GovCloud (FedRAMP High) |
 
-Full technical specification: [`docs/architecture-v2.md`](docs/architecture-v2.md)
+Full technical specification: [`docs/architecture-v3.md`](docs/architecture-v3.md)
 
 ---
 
@@ -163,8 +178,8 @@ Quick summary:
 13. Diplomatic Simulation Theater — Game-theoretic negotiation wargaming
 14. Legislative Drafting Workshop — AI-assisted bill drafting with inline annotations
 15. Civilizational Memory — Episodic, semantic, and procedural memory browser
-16. Knowledge Graph — Interactive 500M-node graph visualization
-17. Agent Fleet — Monitor all 47 agents, inter-agent communication log
+16. Knowledge Graph — Interactive graph visualization (Wikidata foundation + government extension)
+17. Agent Fleet — Monitor all 11 core agents + dynamic sub-agents, inter-agent communication log
 18. Audit Log — Immutable record of every ATHENA output
 19. ATHENA's Constitution — Values framework with live compliance metrics
 
@@ -201,30 +216,31 @@ This design draws on the following real systems and published research:
 
 ## Comparative Analysis
 
-| Capability | ATHENA v2 | Palantir | UAE Cabinet AI | DOGE |
+| Capability | ATHENA v3 | Palantir | UAE Cabinet AI | DOGE |
 |------------|-----------|---------|----------------|------|
 | Multi-domain synthesis | ✅ | ❌ | ❓ | ❌ |
-| Self-evolution (MetaClaw) | ✅ | ❌ | ❓ | ❌ |
-| Adversarial self-challenge | ✅ | ❌ | ❓ | ❌ |
-| Autonomous research | ✅ | ❌ | ❓ | ❌ |
-| Civilizational objective (CHI) | ✅ | ❌ | ❓ | ❌ |
-| Values framework (hardcoded) | ✅ | ❌ | ❓ | ❌ |
-| Full audit trail + oversight API | ✅ | ❌ | ❓ | ❌ |
-| Persistent evolving memory | ✅ | ❌ | ❓ | ❌ |
+| Self-evolution (MetaClaw, days not years) | ✅ | ❌ | ❓ | ❌ |
+| Cross-model adversarial challenge | ✅ (Gemini/GPT) | ❌ | ❓ | ❌ |
+| Calibrated CHI (12 real data sources) | ✅ | ❌ | ❓ | ❌ |
+| Autonomous research pipeline | ✅ | ❌ | ❓ | ❌ |
+| Implementation feasibility scoring | ✅ | ❌ | ❓ | ❌ |
+| Values framework (hardcoded, LoRA-proof) | ✅ | ❌ | ❓ | ❌ |
+| Full audit trail + congressional oversight API | ✅ | ❌ | ❓ | ❌ |
+| Legal framework (Presidential Records compliant) | ✅ | ❌ | ❓ | ❌ |
+| Real government data APIs (FRED, Congress.gov) | ✅ | ✅ | ❓ | ❌ |
 
 ---
 
 ## Build Timeline
 
-| Phase | Months | Deliverables |
-|-------|--------|-------------|
-| 0 — Foundation | 1–2 | Data ingestion, knowledge graph, base agents, web shell |
-| 1 — MetaClaw | 3–5 | Self-evolution, outcome tracking, skill library |
-| 2 — Adversarial + Research | 6–8 | Red ATHENA, Research Observatory, autonomous research |
-| 3 — Simulation + Legislative | 9–12 | Simulation Theater, Legislative Drafting, iPhone app |
-| 4 — Full Maturity | 13–18 | LoRA pipeline, ATHENA Open, FedRAMP, Congressional API |
+| Phase | Months | Deliverables | Cost (cumulative) |
+|-------|--------|-------------|-------------------|
+| 1 — Foundation | 1–4 | All free government APIs, Wikidata KG base, 11 agents, CHI calibrated, legal framework, Merkle audit, ImplementationAgent | $180K–$250K |
+| 2 — Intelligence Layer | 5–8 | OpenSecrets, ACLED/SIPRI, government KG extension, Monte Carlo simulation, Research Observatory, congressional oversight API, MetaClaw fast adaptation | $300K–$450K |
+| 3 — Self-Evolution | 6–12 | First human-authorized LoRA cycles, calibration validation, shadow deployment, skill library 500+ | $500K–$700K |
+| 4 — Hardening | Year 2 | External security red team, FedRAMP ATO process, privacy impact assessment, expert review panel, published performance benchmarks | $1.2M–$1.8M |
 
-**Estimated Year 1 Cost: ~$5.9M** (vs. $100B+ in annual government consulting spend)
+**Estimated Year 1 Cost: $500K–$700K** for a production-grade MVP. The $5.9M figure in v2 was for a complete government deployment with FedRAMP, which is Year 2 work.
 
 ---
 
