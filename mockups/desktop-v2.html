@@ -1,0 +1,1082 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ATHENA v2 — Self-Evolving Civilizational Intelligence</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@300;400;500;700&display=swap');
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --bg0: #030508;
+    --bg1: #070a0f;
+    --bg2: #0a0f1a;
+    --bg3: #0e1525;
+    --teal: #00d4aa;
+    --teal2: #00f5c4;
+    --amber: #f5a623;
+    --red: #ff4060;
+    --blue: #4d9fff;
+    --purple: #a78bfa;
+    --pink: #f472b6;
+    --green: #4ade80;
+    --text: #e2eaf6;
+    --text2: #5a7090;
+    --text3: #1e2d45;
+    --border: #0d1828;
+    --border2: #162035;
+  }
+
+  html, body { height: 100%; overflow: hidden; background: var(--bg0); }
+  body { font-family: 'Space Grotesk', sans-serif; color: var(--text); font-size: 12px; }
+
+  #bg { position: fixed; inset: 0; z-index: 0; }
+
+  /* ── SHELL ── */
+  .shell {
+    position: relative; z-index: 1;
+    display: grid;
+    grid-template-rows: 52px 1fr;
+    grid-template-columns: 52px 200px 1fr 340px;
+    height: 100vh;
+  }
+
+  /* ── TOPBAR ── */
+  .topbar {
+    grid-column: 1/-1;
+    display: flex; align-items: center;
+    background: rgba(6,9,14,0.98);
+    border-bottom: 1px solid var(--border2);
+    padding: 0 14px;
+    gap: 16px;
+    backdrop-filter: blur(20px);
+  }
+
+  .logo {
+    display: flex; align-items: center; gap: 9px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 14px; font-weight: 700;
+    color: var(--teal);
+    letter-spacing: 0.12em;
+    flex-shrink: 0;
+  }
+
+  .logo-ring {
+    width: 32px; height: 32px; position: relative;
+    flex-shrink: 0;
+  }
+
+  .logo-ring svg { width: 100%; height: 100%; animation: logo-spin 20s linear infinite; }
+  @keyframes logo-spin { to { transform: rotate(360deg); } }
+
+  .version-badge {
+    font-size: 9px; padding: 2px 6px; border-radius: 3px;
+    background: linear-gradient(135deg, rgba(0,212,170,0.2), rgba(77,159,255,0.2));
+    border: 1px solid rgba(0,212,170,0.3);
+    color: var(--teal); font-family: 'JetBrains Mono', monospace;
+  }
+
+  .topbar-sep { width: 1px; height: 28px; background: var(--border2); flex-shrink: 0; }
+
+  /* CHI - The Big Number */
+  .chi-display {
+    display: flex; align-items: center; gap: 12px;
+    padding: 4px 16px;
+    border: 1px solid rgba(0,212,170,0.2);
+    border-radius: 10px;
+    background: rgba(0,212,170,0.05);
+  }
+  .chi-label {
+    font-size: 9px; text-transform: uppercase; letter-spacing: 0.1em;
+    color: var(--text2); font-family: 'JetBrains Mono', monospace;
+    line-height: 1.3;
+  }
+  .chi-value {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 26px; font-weight: 700;
+    color: var(--teal);
+    text-shadow: 0 0 24px rgba(0,212,170,0.5);
+    line-height: 1;
+  }
+  .chi-delta { font-size: 11px; color: var(--teal); margin-top: 2px; }
+
+  /* Evolution status */
+  .evo-status {
+    display: flex; align-items: center; gap: 8px;
+    padding: 5px 12px;
+    border: 1px solid rgba(167,139,250,0.25);
+    border-radius: 8px;
+    background: rgba(167,139,250,0.06);
+  }
+  .evo-icon { font-size: 14px; animation: pulse 2s infinite; }
+  @keyframes pulse { 0%,100% { opacity:1 } 50% { opacity:0.4 } }
+  .evo-text { font-size: 11px; }
+  .evo-count { color: var(--purple); font-family: 'JetBrains Mono', monospace; font-weight: 600; }
+
+  /* Research status */
+  .research-status {
+    display: flex; align-items: center; gap: 8px;
+    padding: 5px 12px;
+    border: 1px solid rgba(245,166,35,0.2);
+    border-radius: 8px;
+    background: rgba(245,166,35,0.06);
+  }
+  .research-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--amber); animation: pulse 0.8s infinite; }
+
+  .topbar-right {
+    margin-left: auto;
+    display: flex; align-items: center; gap: 12px;
+  }
+
+  .live-feeds {
+    display: flex; align-items: center; gap: 5px;
+    font-size: 10px; color: var(--teal);
+    font-family: 'JetBrains Mono', monospace;
+  }
+  .live-dot { width: 5px; height: 5px; border-radius: 50%; background: var(--teal); box-shadow: 0 0 6px var(--teal); animation: pulse 1.5s infinite; }
+
+  .time-display {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px; color: var(--text2); text-align: right; line-height: 1.5;
+  }
+
+  .user-chip {
+    display: flex; align-items: center; gap: 8px;
+    padding: 5px 10px; border-radius: 8px;
+    background: var(--bg2); border: 1px solid var(--border2);
+    cursor: pointer;
+  }
+  .user-avatar {
+    width: 24px; height: 24px; border-radius: 50%;
+    background: conic-gradient(from 0deg, var(--teal), var(--blue), var(--purple), var(--teal));
+    display: flex; align-items: center; justify-content: center;
+    font-size: 10px; font-weight: 700; color: var(--bg0);
+  }
+
+  /* ── ICON RAIL ── */
+  .icon-rail {
+    background: rgba(6,9,14,0.98);
+    border-right: 1px solid var(--border2);
+    display: flex; flex-direction: column; align-items: center;
+    padding: 10px 0; gap: 2px;
+  }
+  .ir-btn {
+    width: 38px; height: 38px; border-radius: 9px;
+    display: flex; align-items: center; justify-content: center;
+    border: none; background: transparent; cursor: pointer;
+    font-size: 16px; color: var(--text2); transition: all 0.2s;
+    position: relative;
+  }
+  .ir-btn:hover { background: var(--bg2); color: var(--text); }
+  .ir-btn.active { background: rgba(0,212,170,0.12); color: var(--teal); box-shadow: inset 0 0 12px rgba(0,212,170,0.1); }
+  .ir-badge {
+    position: absolute; top: 4px; right: 4px;
+    width: 8px; height: 8px; border-radius: 50%;
+    font-size: 0;
+  }
+
+  /* ── NAV SIDEBAR ── */
+  .nav { background: rgba(7,10,15,0.98); border-right: 1px solid var(--border2); overflow-y: auto; padding: 12px; }
+
+  .nav-group { margin-bottom: 16px; }
+  .nav-group-title {
+    font-size: 9px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.12em;
+    color: var(--text3); padding: 0 8px 8px; display: block;
+  }
+  .ni {
+    display: flex; align-items: center; gap: 8px; padding: 7px 8px;
+    border-radius: 7px; cursor: pointer; color: var(--text2); font-size: 11.5px;
+    font-weight: 500; transition: all 0.15s; margin-bottom: 1px;
+  }
+  .ni:hover { background: var(--bg2); color: var(--text); }
+  .ni.active { background: rgba(0,212,170,0.1); color: var(--teal); }
+  .ni .icon { flex-shrink: 0; font-size: 13px; }
+  .ni .badge {
+    margin-left: auto; font-size: 9px; padding: 1px 5px; border-radius: 3px;
+    font-family: 'JetBrains Mono', monospace;
+  }
+  .badge-red { background: rgba(255,64,96,0.15); color: var(--red); }
+  .badge-teal { background: rgba(0,212,170,0.12); color: var(--teal); }
+  .badge-purple { background: rgba(167,139,250,0.12); color: var(--purple); }
+  .badge-amber { background: rgba(245,166,35,0.12); color: var(--amber); }
+  .nav-div { height: 1px; background: var(--border2); margin: 8px 0; }
+
+  /* ── MAIN ── */
+  .main { overflow-y: auto; background: var(--bg0); display: flex; flex-direction: column; gap: 14px; padding: 16px; }
+
+  /* CHI BREAKDOWN */
+  .chi-breakdown {
+    background: var(--bg1); border: 1px solid var(--border2); border-radius: 12px; overflow: hidden;
+  }
+  .cb-header {
+    padding: 12px 16px; border-bottom: 1px solid var(--border2);
+    display: flex; align-items: center; justify-content: space-between;
+  }
+  .cb-title { font-size: 12px; font-weight: 700; }
+  .cb-sub { font-size: 10px; color: var(--text2); margin-top: 2px; }
+  .cb-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 0; }
+  .chi-dim {
+    padding: 12px 14px;
+    border-right: 1px solid var(--border);
+    border-bottom: 1px solid var(--border);
+  }
+  .chi-dim:nth-child(3n) { border-right: none; }
+  .chi-dim:nth-child(4), .chi-dim:nth-child(5), .chi-dim:nth-child(6) { border-bottom: none; }
+  .cd-label { font-size: 9px; text-transform: uppercase; letter-spacing: 0.08em; color: var(--text2); margin-bottom: 5px; }
+  .cd-value { font-family: 'JetBrains Mono', monospace; font-size: 20px; font-weight: 700; line-height: 1; margin-bottom: 5px; }
+  .cd-bar { height: 3px; border-radius: 2px; background: var(--border2); overflow: hidden; margin-bottom: 4px; }
+  .cd-fill { height: 100%; border-radius: 2px; }
+  .cd-trend { font-size: 10px; color: var(--text2); }
+
+  /* SELF-EVOLUTION PANEL */
+  .evo-panel {
+    background: var(--bg1); border: 1px solid rgba(167,139,250,0.2); border-radius: 12px; overflow: hidden;
+  }
+  .ep-header {
+    padding: 12px 16px; border-bottom: 1px solid rgba(167,139,250,0.15);
+    background: rgba(167,139,250,0.04);
+    display: flex; align-items: center; gap: 10px;
+  }
+  .ep-title { font-size: 12px; font-weight: 700; flex: 1; }
+  .ep-badge {
+    font-size: 9px; padding: 2px 7px; border-radius: 4px;
+    border: 1px solid rgba(167,139,250,0.3);
+    background: rgba(167,139,250,0.1);
+    color: var(--purple); font-family: 'JetBrains Mono', monospace;
+  }
+  .ep-body { padding: 12px 16px; display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+  .ep-metric {
+    background: var(--bg2); border: 1px solid var(--border2); border-radius: 8px; padding: 10px 12px;
+  }
+  .ep-m-label { font-size: 9px; color: var(--text2); text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 5px; }
+  .ep-m-value { font-family: 'JetBrains Mono', monospace; font-size: 18px; font-weight: 600; color: var(--purple); }
+  .ep-m-sub { font-size: 10px; color: var(--text2); margin-top: 3px; }
+
+  /* Skill timeline */
+  .skill-timeline { padding: 10px 16px 14px; border-top: 1px solid var(--border2); }
+  .st-label { font-size: 9px; color: var(--text2); text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 8px; }
+  .skill-bars { display: flex; align-items: flex-end; gap: 3px; height: 40px; }
+  .skill-bar { flex: 1; border-radius: 2px 2px 0 0; background: rgba(167,139,250,0.3); transition: height 0.5s; cursor: pointer; position: relative; }
+  .skill-bar:hover { background: var(--purple); }
+  .skill-bar.latest { background: var(--purple); box-shadow: 0 0 8px rgba(167,139,250,0.4); }
+
+  /* RESEARCH OBSERVATORY */
+  .research-obs {
+    background: var(--bg1); border: 1px solid rgba(245,166,35,0.2); border-radius: 12px; overflow: hidden;
+  }
+  .ro-header {
+    padding: 12px 16px; border-bottom: 1px solid rgba(245,166,35,0.15);
+    background: rgba(245,166,35,0.03);
+    display: flex; align-items: center; justify-content: space-between;
+  }
+  .ro-title { font-size: 12px; font-weight: 700; }
+  .ro-body { padding: 0; }
+  .research-run {
+    padding: 10px 16px; border-bottom: 1px solid var(--border);
+    display: grid; grid-template-columns: auto 1fr auto; gap: 10px; align-items: center;
+  }
+  .research-run:last-child { border-bottom: none; }
+  .rr-stage {
+    width: 28px; height: 28px; border-radius: 7px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 11px; font-weight: 700; font-family: 'JetBrains Mono', monospace;
+  }
+  .rr-stage.running { background: rgba(245,166,35,0.15); color: var(--amber); border: 1px solid rgba(245,166,35,0.3); }
+  .rr-stage.done { background: rgba(0,212,170,0.12); color: var(--teal); border: 1px solid rgba(0,212,170,0.2); }
+  .rr-stage.queued { background: var(--bg3); color: var(--text3); border: 1px solid var(--border2); }
+  .rr-topic { font-size: 11.5px; font-weight: 500; margin-bottom: 3px; }
+  .rr-progress { font-size: 10px; color: var(--text2); }
+  .rr-progress-bar { height: 2px; background: var(--border2); border-radius: 1px; margin-top: 5px; overflow: hidden; }
+  .rr-pb-fill { height: 100%; border-radius: 1px; background: var(--amber); transition: width 2s; }
+
+  /* WORLD MAP */
+  .map-card {
+    background: var(--bg1); border: 1px solid var(--border2); border-radius: 12px; overflow: hidden;
+  }
+  .mc-header {
+    padding: 12px 16px; border-bottom: 1px solid var(--border2);
+    display: flex; align-items: center; justify-content: space-between;
+  }
+  .mc-title { font-size: 12px; font-weight: 700; }
+  .map-body { padding: 8px 16px 14px; position: relative; }
+  .map-svg-wrap { width: 100%; height: 180px; position: relative; }
+
+  /* ADVISORIES */
+  .advisory-card {
+    background: var(--bg1); border: 1px solid var(--border2); border-radius: 12px; overflow: hidden;
+  }
+  .ac-header {
+    padding: 12px 16px; border-bottom: 1px solid var(--border2);
+    display: flex; align-items: center; justify-content: space-between;
+  }
+  .ac-title { font-size: 12px; font-weight: 700; }
+  .advisory-row {
+    padding: 11px 16px; border-bottom: 1px solid var(--border);
+    display: grid; grid-template-columns: 3px 1fr auto; gap: 10px; align-items: start;
+  }
+  .advisory-row:last-child { border-bottom: none; }
+  .ar-stripe { width: 3px; border-radius: 2px; align-self: stretch; min-height: 16px; }
+  .ar-content {}
+  .ar-domain { font-size: 9px; color: var(--text2); text-transform: uppercase; letter-spacing: 0.07em; margin-bottom: 3px; }
+  .ar-title { font-size: 11.5px; font-weight: 600; line-height: 1.4; margin-bottom: 2px; }
+  .ar-sub { font-size: 10.5px; color: var(--text2); line-height: 1.4; }
+  .ar-red-flag {
+    display: inline-flex; align-items: center; gap: 3px;
+    font-size: 9px; color: var(--red); padding: 2px 5px;
+    border: 1px solid rgba(255,64,96,0.25); border-radius: 3px;
+    background: rgba(255,64,96,0.08); margin-top: 4px;
+  }
+  .ar-score { text-align: right; }
+  .ar-score-num { font-family: 'JetBrains Mono', monospace; font-size: 18px; font-weight: 700; line-height: 1; }
+  .ar-score-label { font-size: 8px; color: var(--text2); text-transform: uppercase; letter-spacing: 0.05em; }
+
+  /* ── CHAT PANEL ── */
+  .chat { display: flex; flex-direction: column; background: rgba(6,9,14,0.98); border-left: 1px solid var(--border2); }
+
+  .chat-header { padding: 12px 14px; border-bottom: 1px solid var(--border2); background: var(--bg1); }
+  .chat-header-top { display: flex; align-items: center; gap: 10px; margin-bottom: 10px; }
+  .athena-logo {
+    width: 34px; height: 34px; border-radius: 50%;
+    background: conic-gradient(from 0deg, var(--teal), var(--blue), var(--purple), var(--pink), var(--teal));
+    display: flex; align-items: center; justify-content: center; font-size: 16px;
+    box-shadow: 0 0 20px rgba(0,212,170,0.35), 0 0 40px rgba(0,212,170,0.1);
+    animation: halo-pulse 4s ease-in-out infinite;
+  }
+  @keyframes halo-pulse {
+    0%,100% { box-shadow: 0 0 20px rgba(0,212,170,0.35), 0 0 40px rgba(0,212,170,0.1); }
+    50% { box-shadow: 0 0 30px rgba(0,212,170,0.6), 0 0 60px rgba(0,212,170,0.2); }
+  }
+  .chat-name { font-size: 13px; font-weight: 700; }
+  .chat-status { font-size: 10px; color: var(--teal); display: flex; align-items: center; gap: 4px; margin-top: 2px; }
+  .chat-tabs {
+    display: flex; gap: 1px; background: var(--border2); border-radius: 7px; padding: 2px; margin-bottom: 0;
+  }
+  .ct {
+    flex: 1; padding: 5px 6px; border-radius: 5px; border: none; background: transparent;
+    color: var(--text2); cursor: pointer; font-size: 10px; font-family: inherit;
+    font-weight: 500; transition: all 0.15s; text-align: center;
+  }
+  .ct.active { background: var(--bg1); color: var(--teal); box-shadow: 0 0 8px rgba(0,212,170,0.1); }
+
+  .chat-msgs { flex: 1; overflow-y: auto; padding: 12px; display: flex; flex-direction: column; gap: 10px; }
+
+  .msg { display: flex; flex-direction: column; gap: 3px; }
+  .msg.user { align-items: flex-end; }
+  .msg.ai { align-items: flex-start; }
+  .msg-prefix { font-size: 9px; font-family: 'JetBrains Mono', monospace; text-transform: uppercase; letter-spacing: 0.08em; }
+  .msg.ai .msg-prefix { color: var(--teal); display: flex; align-items: center; gap: 4px; }
+  .msg.ai .msg-prefix.red-mode { color: var(--red); }
+  .msg-bubble { max-width: 93%; padding: 9px 12px; border-radius: 10px; font-size: 12px; line-height: 1.6; }
+  .msg.user .msg-bubble {
+    background: linear-gradient(135deg, rgba(0,212,170,0.15), rgba(77,159,255,0.1));
+    border: 1px solid rgba(0,212,170,0.2); border-bottom-right-radius: 3px;
+  }
+  .msg.ai .msg-bubble {
+    background: var(--bg2); border: 1px solid var(--border2); border-bottom-left-radius: 3px;
+  }
+  .msg.ai.red .msg-bubble {
+    background: rgba(255,64,96,0.06); border: 1px solid rgba(255,64,96,0.2); border-bottom-left-radius: 3px;
+  }
+  .msg-meta { font-size: 9px; color: var(--text3); font-family: 'JetBrains Mono', monospace; }
+  .conf-pill {
+    display: inline-flex; align-items: center; gap: 4px; margin-top: 5px;
+    font-size: 9px; padding: 2px 6px; border-radius: 3px;
+    border: 1px solid rgba(0,212,170,0.2); background: rgba(0,212,170,0.08); color: var(--teal);
+  }
+  .conf-pill.warn { border-color: rgba(245,166,35,0.2); background: rgba(245,166,35,0.08); color: var(--amber); }
+
+  /* Red ATHENA box */
+  .red-debate-box {
+    padding: 10px 12px; margin: 4px 0;
+    background: rgba(255,64,96,0.05); border: 1px solid rgba(255,64,96,0.2); border-radius: 8px;
+    border-left: 3px solid var(--red);
+  }
+  .rdb-header { font-size: 9px; color: var(--red); font-family: 'JetBrains Mono', monospace; text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 6px; }
+  .rdb-text { font-size: 11px; color: var(--text2); line-height: 1.5; }
+
+  /* Research spawn notification */
+  .research-spawn {
+    padding: 8px 10px;
+    background: rgba(245,166,35,0.06); border: 1px solid rgba(245,166,35,0.2); border-radius: 7px;
+    display: flex; align-items: center; gap: 8px;
+    font-size: 11px; color: var(--amber);
+  }
+
+  /* Skill earned notification */
+  .skill-earned {
+    padding: 8px 10px;
+    background: rgba(167,139,250,0.06); border: 1px solid rgba(167,139,250,0.2); border-radius: 7px;
+    display: flex; align-items: center; gap: 8px;
+    font-size: 11px; color: var(--purple);
+  }
+
+  /* Sim result */
+  .sim-result {
+    background: rgba(0,212,170,0.04); border: 1px solid rgba(0,212,170,0.15);
+    border-radius: 8px; padding: 10px 12px; margin-top: 4px;
+  }
+  .sim-result-header { font-size: 9px; color: var(--teal); font-family: monospace; text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 8px; }
+  .sim-result-row { display: flex; justify-content: space-between; font-size: 11px; margin-bottom: 5px; }
+  .sim-result-label { color: var(--text2); }
+  .sim-result-val { font-family: 'JetBrains Mono', monospace; font-weight: 500; }
+
+  .typing { display: flex; align-items: center; gap: 6px; padding: 7px 10px; background: var(--bg2); border: 1px solid var(--border2); border-radius: 8px; border-bottom-left-radius: 3px; width: fit-content; }
+  .typing span { width: 4px; height: 4px; border-radius: 50%; background: var(--teal); animation: dot 1.2s ease-in-out infinite; }
+  .typing span:nth-child(2) { animation-delay: 0.2s; }
+  .typing span:nth-child(3) { animation-delay: 0.4s; }
+  @keyframes dot { 0%,80%,100% { transform: scale(0.8); opacity: 0.4; } 40% { transform: scale(1.2); opacity: 1; } }
+
+  .chat-input-area { padding: 10px 12px; border-top: 1px solid var(--border2); background: var(--bg1); }
+  .cia-actions { display: flex; gap: 5px; margin-bottom: 7px; flex-wrap: wrap; }
+  .cia-btn {
+    font-size: 10px; padding: 3px 8px; border-radius: 4px;
+    border: 1px solid var(--border2); background: transparent; color: var(--text2);
+    cursor: pointer; font-family: inherit; transition: all 0.15s;
+  }
+  .cia-btn:hover { border-color: rgba(0,212,170,0.3); color: var(--teal); }
+  .cia-wrap { display: flex; gap: 8px; align-items: flex-end; }
+  .cia-input {
+    flex: 1; background: var(--bg2); border: 1px solid var(--border2); border-radius: 9px;
+    padding: 9px 12px; font-size: 12px; color: var(--text); font-family: inherit;
+    resize: none; outline: none; line-height: 1.4;
+  }
+  .cia-input:focus { border-color: rgba(0,212,170,0.4); }
+  .cia-send {
+    width: 36px; height: 36px; border-radius: 8px; background: var(--teal);
+    border: none; cursor: pointer; display: flex; align-items: center; justify-content: center;
+    font-size: 15px; color: var(--bg0); flex-shrink: 0;
+  }
+
+  .agent-fleet {
+    padding: 8px 12px; border-top: 1px solid var(--border2);
+    display: flex; gap: 4px; flex-wrap: wrap;
+  }
+  .af-chip {
+    font-size: 9px; padding: 2px 6px; border-radius: 3px;
+    font-family: 'JetBrains Mono', monospace; display: flex; align-items: center; gap: 3px;
+  }
+  .af-chip.on { border: 1px solid rgba(0,212,170,0.25); background: rgba(0,212,170,0.07); color: var(--teal); }
+  .af-chip.busy { border: 1px solid rgba(245,166,35,0.25); background: rgba(245,166,35,0.07); color: var(--amber); }
+  .af-chip.evo { border: 1px solid rgba(167,139,250,0.25); background: rgba(167,139,250,0.07); color: var(--purple); }
+  .af-dot { width: 4px; height: 4px; border-radius: 50%; }
+  .on .af-dot { background: var(--teal); animation: pulse 1.5s infinite; }
+  .busy .af-dot { background: var(--amber); animation: pulse 0.8s infinite; }
+  .evo .af-dot { background: var(--purple); animation: pulse 2s infinite; }
+
+  /* Scrollbar */
+  ::-webkit-scrollbar { width: 3px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb { background: var(--border2); border-radius: 2px; }
+
+  /* Mobile */
+  @media (max-width: 900px) {
+    .shell { display: none; }
+    .mobile { display: flex; position: fixed; inset: 0; background: var(--bg0); flex-direction: column; align-items: center; justify-content: center; gap: 16px; text-align: center; padding: 32px; }
+  }
+  .mobile { display: none; }
+</style>
+</head>
+<body>
+
+<canvas id="bg"></canvas>
+
+<div class="mobile">
+  <div style="font-size:48px">⬡</div>
+  <div style="font-size:18px;font-weight:700;color:var(--teal)">ATHENA v2</div>
+  <div style="color:var(--text2)">View on desktop for full interface</div>
+</div>
+
+<div class="shell">
+
+  <!-- TOPBAR -->
+  <header class="topbar">
+    <div class="logo">
+      <div class="logo-ring">
+        <svg viewBox="0 0 32 32" fill="none">
+          <circle cx="16" cy="16" r="14" stroke="rgba(0,212,170,0.2)" stroke-width="1"/>
+          <polygon points="16,3 29,10 29,22 16,29 3,22 3,10" stroke="#00d4aa" stroke-width="1.2" fill="none" opacity="0.7"/>
+          <polygon points="16,8 24,12 24,20 16,24 8,20 8,12" stroke="#4d9fff" stroke-width="0.8" fill="none" opacity="0.4"/>
+          <circle cx="16" cy="16" r="3.5" fill="#00d4aa" opacity="0.9"/>
+          <circle cx="16" cy="16" r="3.5" fill="transparent" stroke="#00f5c4" stroke-width="0.5"/>
+        </svg>
+      </div>
+      ATHENA
+      <span class="version-badge">v2.0</span>
+    </div>
+
+    <div class="topbar-sep"></div>
+
+    <!-- CHI -->
+    <div class="chi-display">
+      <div>
+        <div class="chi-label">Civilizational<br>Health Index</div>
+        <div class="chi-delta">↑ +0.4 this week</div>
+      </div>
+      <div class="chi-value">61.9</div>
+      <svg width="48" height="32" viewBox="0 0 48 32">
+        <polyline points="2,28 8,24 14,22 20,20 26,18 32,16 38,12 44,8" fill="none" stroke="rgba(0,212,170,0.6)" stroke-width="1.5" stroke-linecap="round"/>
+        <circle cx="44" cy="8" r="2.5" fill="#00d4aa"/>
+      </svg>
+    </div>
+
+    <div class="topbar-sep"></div>
+
+    <!-- Evolution status -->
+    <div class="evo-status">
+      <div class="evo-icon">🧬</div>
+      <div>
+        <div class="evo-text">MetaClaw Active · <span class="evo-count">2,847 skills</span></div>
+        <div style="font-size:9px;color:var(--text2)">Accuracy ↑ 8.4% vs launch · LoRA updated 6h ago</div>
+      </div>
+    </div>
+
+    <div class="topbar-sep"></div>
+
+    <!-- Research status -->
+    <div class="research-status">
+      <div class="research-dot"></div>
+      <div>
+        <div style="font-size:11px;color:var(--amber)">3 Research Agents Running</div>
+        <div style="font-size:9px;color:var(--text2)">AI displacement economics · Taiwan precedents · Arctic policy</div>
+      </div>
+    </div>
+
+    <div class="topbar-right">
+      <div class="live-feeds">
+        <div class="live-dot"></div>
+        847 feeds · 8,241 events/sec
+      </div>
+      <div class="topbar-sep"></div>
+      <div class="time-display">
+        <div id="t" style="color:var(--text);font-weight:500"></div>
+        <div>MARCH 31, 2026</div>
+      </div>
+      <div class="user-chip">
+        <div class="user-avatar">CD</div>
+        <div>
+          <div style="font-size:11px;font-weight:600">Chris DiMarco</div>
+          <div style="font-size:9px;color:var(--text2)">OPERATOR · LEVEL 5</div>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <!-- ICON RAIL -->
+  <nav class="icon-rail">
+    <div class="ir-btn active" title="Dashboard">⬡</div>
+    <div class="ir-btn" title="World Intelligence">🌐</div>
+    <div class="ir-btn" title="Congress" style="position:relative">
+      🏛
+      <div class="ir-badge" style="background:var(--red)"></div>
+    </div>
+    <div class="ir-btn" title="Economy">📈</div>
+    <div class="ir-btn" title="Defense">🛡</div>
+    <div class="ir-btn" title="Diplomacy">🌍</div>
+    <div class="ir-btn" title="Simulation Theater">⚗️</div>
+    <div style="flex:1"></div>
+    <div class="ir-btn" title="Self-Evolution / MetaClaw" style="color:var(--purple)">🧬</div>
+    <div class="ir-btn" title="Research Observatory" style="color:var(--amber)">🔬</div>
+    <div class="ir-btn" title="Memory Browser">🧠</div>
+    <div class="ir-btn" title="Audit Log">📜</div>
+    <div class="ir-btn" title="Settings">⚙</div>
+  </nav>
+
+  <!-- NAV SIDEBAR -->
+  <aside class="nav">
+    <div class="nav-group">
+      <span class="nav-group-title">Command</span>
+      <div class="ni active"><span class="icon">◈</span> Executive Dashboard</div>
+      <div class="ni"><span class="icon">⚡</span> Active Advisories <span class="badge badge-red">7</span></div>
+      <div class="ni"><span class="icon">🌐</span> World Intelligence</div>
+    </div>
+
+    <div class="nav-div"></div>
+    <div class="nav-group">
+      <span class="nav-group-title">v2 NEW</span>
+      <div class="ni" style="color:var(--purple)"><span class="icon">🧬</span> MetaClaw Evolution <span class="badge badge-purple">LIVE</span></div>
+      <div class="ni" style="color:var(--amber)"><span class="icon">🔬</span> Research Observatory <span class="badge badge-amber">3</span></div>
+      <div class="ni"><span class="icon">⚔️</span> Red ATHENA Debates</div>
+      <div class="ni"><span class="icon">🎭</span> Diplomatic Sim Theater</div>
+      <div class="ni"><span class="icon">📐</span> Legislative Drafting</div>
+      <div class="ni"><span class="icon">🧠</span> Civilizational Memory</div>
+      <div class="ni"><span class="icon">📊</span> CHI Dashboard</div>
+    </div>
+
+    <div class="nav-div"></div>
+    <div class="nav-group">
+      <span class="nav-group-title">Government</span>
+      <div class="ni"><span class="icon">🏛</span> Congress <span class="badge badge-red">12</span></div>
+      <div class="ni"><span class="icon">⚖️</span> Judiciary</div>
+      <div class="ni"><span class="icon">💰</span> Federal Budget</div>
+      <div class="ni"><span class="icon">🗳</span> Officials</div>
+    </div>
+
+    <div class="nav-div"></div>
+    <div class="nav-group">
+      <span class="nav-group-title">Policy Domains</span>
+      <div class="ni"><span class="icon">📈</span> Economy</div>
+      <div class="ni"><span class="icon">🛡</span> Defense</div>
+      <div class="ni"><span class="icon">🌍</span> Foreign Policy</div>
+      <div class="ni"><span class="icon">🌿</span> Environment <span class="badge badge-red">!</span></div>
+      <div class="ni"><span class="icon">🏥</span> Public Health</div>
+      <div class="ni"><span class="icon">🎓</span> Education & Science</div>
+    </div>
+
+    <div class="nav-div"></div>
+    <div class="nav-group">
+      <span class="nav-group-title">ATHENA System</span>
+      <div class="ni"><span class="icon">🤖</span> Agent Fleet <span class="badge badge-teal">47</span></div>
+      <div class="ni"><span class="icon">📜</span> Audit Log</div>
+      <div class="ni"><span class="icon">🗺</span> Knowledge Graph</div>
+      <div class="ni"><span class="icon">⚖️</span> Constitution</div>
+    </div>
+  </aside>
+
+  <!-- MAIN CONTENT -->
+  <main class="main">
+
+    <!-- CHI Breakdown -->
+    <div class="chi-breakdown">
+      <div class="cb-header">
+        <div>
+          <div class="cb-title">Civilizational Health Index — 61.9 / 100</div>
+          <div class="cb-sub">ATHENA's unified objective function · All advisories scored against CHI impact</div>
+        </div>
+        <div style="font-size:10px;color:var(--text2)">Updated 4 min ago · 847 input streams</div>
+      </div>
+      <div class="cb-grid">
+        <div class="chi-dim">
+          <div class="cd-label">Human Flourishing</div>
+          <div class="cd-value" style="color:var(--teal)">74.2</div>
+          <div class="cd-bar"><div class="cd-fill" style="width:74.2%;background:var(--teal)"></div></div>
+          <div class="cd-trend" style="color:var(--teal)">↑ +0.3 · Weight 25%</div>
+        </div>
+        <div class="chi-dim">
+          <div class="cd-label">Ecological Health</div>
+          <div class="cd-value" style="color:var(--red)">41.0</div>
+          <div class="cd-bar"><div class="cd-fill" style="width:41%;background:var(--red)"></div></div>
+          <div class="cd-trend" style="color:var(--red)">↓ -0.5 · CRITICAL · Weight 20%</div>
+        </div>
+        <div class="chi-dim">
+          <div class="cd-label">Social Cohesion</div>
+          <div class="cd-value" style="color:var(--amber)">58.3</div>
+          <div class="cd-bar"><div class="cd-fill" style="width:58.3%;background:var(--amber)"></div></div>
+          <div class="cd-trend" style="color:var(--amber)">↓ -0.8 · Weight 15%</div>
+        </div>
+        <div class="chi-dim">
+          <div class="cd-label">Scientific Progress</div>
+          <div class="cd-value" style="color:var(--teal)">71.8</div>
+          <div class="cd-bar"><div class="cd-fill" style="width:71.8%;background:var(--teal)"></div></div>
+          <div class="cd-trend" style="color:var(--teal)">↑ +1.2 · AI boom · Weight 15%</div>
+        </div>
+        <div class="chi-dim">
+          <div class="cd-label">Peace & Security</div>
+          <div class="cd-value" style="color:var(--amber)">66.4</div>
+          <div class="cd-bar"><div class="cd-fill" style="width:66.4%;background:var(--amber)"></div></div>
+          <div class="cd-trend" style="color:var(--amber)">→ +0.1 · Elevated · Weight 15%</div>
+        </div>
+        <div class="chi-dim">
+          <div class="cd-label">Economic Vitality</div>
+          <div class="cd-value" style="color:var(--teal)">61.2</div>
+          <div class="cd-bar"><div class="cd-fill" style="width:61.2%;background:var(--teal)"></div></div>
+          <div class="cd-trend" style="color:var(--teal)">↑ +0.4 · Weight 10%</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Evolution Panel + Research Observatory side by side -->
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px">
+
+      <!-- Self-Evolution -->
+      <div class="evo-panel">
+        <div class="ep-header">
+          <span style="font-size:16px">🧬</span>
+          <div class="ep-title">MetaClaw Self-Evolution Engine</div>
+          <span class="ep-badge">ONLINE</span>
+        </div>
+        <div class="ep-body">
+          <div class="ep-metric">
+            <div class="ep-m-label">Governance Skills Accumulated</div>
+            <div class="ep-m-value">2,847</div>
+            <div class="ep-m-sub">↑ +38 today · via fast adaptation</div>
+          </div>
+          <div class="ep-metric">
+            <div class="ep-m-label">Accuracy vs Launch</div>
+            <div class="ep-m-value" style="color:var(--teal)">+8.4%</div>
+            <div class="ep-m-sub">78.0% → 86.4% · 4 LoRA updates</div>
+          </div>
+          <div class="ep-metric">
+            <div class="ep-m-label">Outcome Records Tracked</div>
+            <div class="ep-m-value" style="color:var(--blue)">14,207</div>
+            <div class="ep-m-sub">Advisories logged with predictions</div>
+          </div>
+          <div class="ep-metric">
+            <div class="ep-m-label">Next LoRA Update</div>
+            <div class="ep-m-value" style="color:var(--amber)">02:14</div>
+            <div class="ep-m-sub">UTC · Scheduled via OMLS · 847 new trajectories queued</div>
+          </div>
+        </div>
+        <div class="skill-timeline">
+          <div class="st-label">Skill Accumulation — Past 30 Days</div>
+          <div class="skill-bars" id="skill-bars"></div>
+        </div>
+      </div>
+
+      <!-- Research Observatory -->
+      <div class="research-obs">
+        <div class="ro-header">
+          <div>
+            <div class="ro-title">🔬 Autonomous Research Observatory</div>
+            <div style="font-size:10px;color:var(--text2);margin-top:2px">17-stage pipeline · AutoResearchClaw · Currently 3 active</div>
+          </div>
+          <div style="font-size:10px;padding:3px 8px;border-radius:4px;background:rgba(245,166,35,0.1);border:1px solid rgba(245,166,35,0.25);color:var(--amber)">3 RUNNING</div>
+        </div>
+        <div class="ro-body">
+          <div class="research-run">
+            <div class="rr-stage running">12</div>
+            <div>
+              <div class="rr-topic">AI-driven labor displacement — economic modeling</div>
+              <div class="rr-progress">Stage 12/17: Synthesizing findings · 23 papers screened</div>
+              <div class="rr-progress-bar"><div class="rr-pb-fill" style="width:72%"></div></div>
+            </div>
+            <div style="text-align:right;font-size:10px;color:var(--text2)">72%<br>~14 min</div>
+          </div>
+          <div class="research-run">
+            <div class="rr-stage running">7</div>
+            <div>
+              <div class="rr-topic">Historical Taiwan Strait precedents — diplomatic outcomes</div>
+              <div class="rr-progress">Stage 7/17: Case study extraction · 8 episodes found</div>
+              <div class="rr-progress-bar"><div class="rr-pb-fill" style="width:41%" style="background:var(--amber)"></div></div>
+            </div>
+            <div style="text-align:right;font-size:10px;color:var(--text2)">41%<br>~31 min</div>
+          </div>
+          <div class="research-run">
+            <div class="rr-stage running">3</div>
+            <div>
+              <div class="rr-topic">Arctic governance vacuum — international law gaps</div>
+              <div class="rr-progress">Stage 3/17: Literature survey · 847 papers found</div>
+              <div class="rr-progress-bar"><div class="rr-pb-fill" style="width:18%"></div></div>
+            </div>
+            <div style="text-align:right;font-size:10px;color:var(--text2)">18%<br>~58 min</div>
+          </div>
+          <div class="research-run">
+            <div class="rr-stage queued">Q</div>
+            <div>
+              <div class="rr-topic">Mental health policy effectiveness — US state comparisons</div>
+              <div class="rr-progress">Queued · Triggered by CHI social cohesion decline</div>
+              <div class="rr-progress-bar"></div>
+            </div>
+            <div style="text-align:right;font-size:10px;color:var(--text3)">Queue<br>#1</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Advisories (with Red ATHENA annotations) -->
+    <div class="advisory-card">
+      <div class="ac-header">
+        <div>
+          <div class="ac-title">⚡ ATHENA Advisories — Adversarially Validated</div>
+          <div style="font-size:10px;color:var(--text2);margin-top:2px">All urgency ≥7 advisories have passed Red ATHENA challenge · Confidence scores reflect adversarial debate</div>
+        </div>
+        <div style="font-size:10px;padding:3px 8px;border-radius:4px;background:rgba(0,212,170,0.08);border:1px solid rgba(0,212,170,0.2);color:var(--teal)">7 ACTIVE</div>
+      </div>
+
+      <div class="advisory-row">
+        <div class="ar-stripe" style="background:var(--red);box-shadow:0 0 8px var(--red)"></div>
+        <div class="ar-content">
+          <div class="ar-domain">🛡 Defense · Taiwan Strait · CHI Impact: -12.4 if conflict</div>
+          <div class="ar-title">PLAAF incursions +340% — 23% kinetic probability in 90 days</div>
+          <div class="ar-sub">Diplomatic window closing. Singapore backchannel has 71% success probability per game theory model.</div>
+          <div class="ar-red-flag">⚔️ Red ATHENA: "Backchannel may signal weakness. Counter: public posture + private talks dual-track."</div>
+        </div>
+        <div class="ar-score">
+          <div class="ar-score-num" style="color:var(--red)">9.1</div>
+          <div class="ar-score-label">Urgency</div>
+          <div style="font-size:9px;color:var(--teal);margin-top:4px;font-family:monospace">Conf 87%</div>
+        </div>
+      </div>
+
+      <div class="advisory-row">
+        <div class="ar-stripe" style="background:var(--red);box-shadow:0 0 8px var(--red)"></div>
+        <div class="ar-content">
+          <div class="ar-domain">💰 Fiscal · Federal Debt · CHI Impact: -8.1 if unaddressed by 2029</div>
+          <div class="ar-title">Debt service exceeds defense by FY2029 — structural crowding out begins</div>
+          <div class="ar-sub">3–5 year correction window. ATHENA fiscal package: $1.8T savings, minimal social program impact.</div>
+          <div class="ar-red-flag">⚔️ Red ATHENA: "Austerity in slowdown risks recession. Counter: growth-first, consolidation after 2027."</div>
+        </div>
+        <div class="ar-score">
+          <div class="ar-score-num" style="color:var(--red)">8.7</div>
+          <div class="ar-score-label">Urgency</div>
+          <div style="font-size:9px;color:var(--teal);margin-top:4px;font-family:monospace">Conf 94%</div>
+        </div>
+      </div>
+
+      <div class="advisory-row">
+        <div class="ar-stripe" style="background:var(--amber);box-shadow:0 0 8px var(--amber)"></div>
+        <div class="ar-content">
+          <div class="ar-domain">🌿 Environment · Climate · CHI Impact: -21.0 cumulative if tipping points breached</div>
+          <div class="ar-title">3 of 9 planetary boundaries breached · Amazon collapse probability rising</div>
+          <div class="ar-sub">AutoResearch run complete: 31% Amazon collapse probability above 1.6°C. ATHENA skill #2,841 generated: "Climate tipping points have non-linear thresholds — linear policy models consistently underestimate risk."</div>
+        </div>
+        <div class="ar-score">
+          <div class="ar-score-num" style="color:var(--amber)">7.8</div>
+          <div class="ar-score-label">Urgency</div>
+          <div style="font-size:9px;color:var(--purple);margin-top:4px;font-family:monospace">🧬 Skill #2841</div>
+        </div>
+      </div>
+
+    </div>
+
+  </main>
+
+  <!-- CHAT PANEL -->
+  <aside class="chat">
+    <div class="chat-header">
+      <div class="chat-header-top">
+        <div class="athena-logo">⬡</div>
+        <div>
+          <div class="chat-name">ATHENA v2 Intelligence Interface</div>
+          <div class="chat-status">
+            <div style="width:5px;height:5px;border-radius:50%;background:var(--teal);animation:pulse 1.5s infinite"></div>
+            Self-evolving · 2,847 skills · 47 agents · Memory: 14,207 episodes
+          </div>
+        </div>
+      </div>
+      <div class="chat-tabs">
+        <button class="ct active" onclick="switchTab(this)">Advisory</button>
+        <button class="ct" onclick="switchTab(this)">Red Debate</button>
+        <button class="ct" onclick="switchTab(this)">Simulate</button>
+        <button class="ct" onclick="switchTab(this)">Memory</button>
+      </div>
+    </div>
+
+    <div class="chat-msgs" id="msgs">
+
+      <!-- System init -->
+      <div class="msg ai">
+        <div class="msg-prefix">⬡ ATHENA v2 · MORNING SYNTHESIS</div>
+        <div class="msg-bubble">
+          Good morning. Self-evolution overnight: <strong>+38 new governance skills</strong>. LoRA update completed at 03:14 UTC — accuracy improved to 86.4% (+0.3%). Three autonomous research runs initiated based on knowledge gaps identified yesterday.<br><br>
+          CHI this morning: <strong>61.9</strong> (↑ 0.4 from last week). Primary drag: Ecological Health at 41.0 — this is the domain that most needs your attention on a civilizational timescale.<br><br>
+          7 active advisories. Two are critical. What's your focus?
+        </div>
+        <div class="conf-pill">Confidence 96% · 847 streams · 47 agents</div>
+        <div class="msg-meta">08:00:04 · LoRA updated 6h ago · 2,847 skills active</div>
+      </div>
+
+      <!-- User -->
+      <div class="msg user">
+        <div class="msg-bubble">Walk me through the Taiwan situation. Has Red ATHENA challenged this?</div>
+        <div class="msg-meta">08:01:18 · Operator</div>
+      </div>
+
+      <!-- ATHENA primary -->
+      <div class="msg ai">
+        <div class="msg-prefix">⬡ ATHENA v2 · PRIMARY ANALYSIS</div>
+        <div class="msg-bubble">
+          Running adversarial self-challenge... (urgency 9.1 — mandatory Red ATHENA protocol)<br><br>
+          <strong>Primary Assessment:</strong> PLAAF has conducted 847 ADIZ incursions this quarter — 340% increase YoY. My diplomatic simulation theater ran 1,000 negotiation paths. The Singapore backchannel approach achieves de-escalation in 71% of simulations over 90 days.<br><br>
+          The game theory model identifies China's core constraint: domestic political positioning ahead of the 6th Plenary. A face-saving off-ramp matters more than the substance.
+        </div>
+        <div class="conf-pill">Primary confidence: 87%</div>
+      </div>
+
+      <!-- Red ATHENA debate box -->
+      <div class="red-debate-box">
+        <div class="rdb-header">⚔️ Red ATHENA — Adversarial Challenge</div>
+        <div class="rdb-text">The backchannel-only approach may signal insufficient resolve. Historical precedent (Skill #1,204: "Asymmetric resolve signaling in strait crises") shows that private diplomacy without public military presence produces de-escalation in only 54% of cases when the initiating actor is testing red lines, not genuinely escalating. PLAAF incursions may be coercive probing, not crisis signaling. Recommend: visible carrier group movement + private talks simultaneously. Dual-track raises success to 79%.</div>
+      </div>
+
+      <!-- ATHENA synthesis -->
+      <div class="msg ai">
+        <div class="msg-prefix">⬡ ATHENA v2 · SYNTHESIS (POST-CHALLENGE)</div>
+        <div class="msg-bubble">
+          Red ATHENA's point is valid and draws on a skill I generated last November. Updated recommendation: <strong>dual-track approach</strong>.<br><br>
+          1. Move USS Ronald Reagan strike group to within 200nm of Taiwan Strait (visible resolve signal)<br>
+          2. Simultaneously activate Singapore backchannel (face-saving exit for Beijing)<br>
+          3. Brief Japan PM on coordination within 24 hours<br><br>
+          Revised success probability: 79% de-escalation within 60 days. CHI impact if this works: +2.1 on Peace & Security dimension.
+        </div>
+        <div class="conf-pill warn">Revised confidence: 79% (updated by Red debate)</div>
+        <div class="msg-meta">08:01:44 · Adversarial self-challenge complete · Skill #1204 applied</div>
+      </div>
+
+      <!-- Skill earned notification -->
+      <div class="skill-earned">
+        🧬 <strong>New Skill Synthesized:</strong> SKILL-2848: "Dual-track resolve + diplomacy achieves 25% higher de-escalation rate than either alone in strait crisis scenarios." Injected into all future defense domain analyses.
+      </div>
+
+      <!-- Research spawn notification -->
+      <div class="research-spawn">
+        🔬 <strong>Research Agent Spawned:</strong> "Historical outcomes of dual-track resolve/diplomacy strategies in contested maritime straits" — 17-stage pipeline initiated · ETA 47 min
+      </div>
+
+      <!-- User follow-up -->
+      <div class="msg user">
+        <div class="msg-bubble">Show me the simulation — what happens if we do nothing?</div>
+        <div class="msg-meta">08:03:22 · Operator</div>
+      </div>
+
+      <!-- Simulation result -->
+      <div class="msg ai">
+        <div class="msg-prefix">⬡ ATHENA v2 · CRISIS SCENARIO ENGINE</div>
+        <div class="msg-bubble">Running: "Taiwan Strait — No Action Scenario" — 1,000 simulations</div>
+      </div>
+
+      <div class="sim-result">
+        <div class="sim-result-header">⚗️ Simulation Results — No Action (1,000 runs · CGE + Game Theory + ABM)</div>
+        <div class="sim-result-row">
+          <div class="sim-result-label">Kinetic conflict probability (90 days)</div>
+          <div class="sim-result-val" style="color:var(--red)">23% → escalates to 41% if no signal sent within 30 days</div>
+        </div>
+        <div class="sim-result-row">
+          <div class="sim-result-label">Economic impact if conflict occurs</div>
+          <div class="sim-result-val" style="color:var(--red)">Global GDP -$4.1T in year 1 · semiconductor supply collapse</div>
+        </div>
+        <div class="sim-result-row">
+          <div class="sim-result-label">CHI impact (conflict scenario)</div>
+          <div class="sim-result-val" style="color:var(--red)">-12.4 points · decade-long recovery</div>
+        </div>
+        <div class="sim-result-row">
+          <div class="sim-result-label">CHI impact (no conflict, tension persists)</div>
+          <div class="sim-result-val" style="color:var(--amber)">-1.8 points over 24 months</div>
+        </div>
+        <div class="sim-result-row">
+          <div class="sim-result-label">ATHENA recommendation</div>
+          <div class="sim-result-val" style="color:var(--teal)">Dual-track · Expected CHI: +2.1 vs do-nothing baseline</div>
+        </div>
+      </div>
+
+      <div class="msg ai">
+        <div class="msg-prefix">⬡ ATHENA v2</div>
+        <div class="msg-bubble">
+          The simulation is unambiguous: inaction is not a neutral option. The decision window for maximum leverage closes in <strong>~30 days</strong> — after that, conflict probability jumps from 23% to 41%.<br><br>
+          Shall I draft the diplomatic brief for the Singapore track and the carrier redeployment order?
+        </div>
+        <div class="conf-pill">Confidence 91% · 1,000 simulation runs · Skill #1204 + #2848 applied</div>
+      </div>
+
+      <!-- Typing -->
+      <div class="msg ai">
+        <div class="typing"><span></span><span></span><span></span></div>
+      </div>
+
+    </div>
+
+    <div class="chat-input-area">
+      <div class="cia-actions">
+        <div class="cia-btn">⚔️ Run Red Challenge</div>
+        <div class="cia-btn">⚗️ Simulate scenario</div>
+        <div class="cia-btn">📋 Draft legislation</div>
+        <div class="cia-btn">🧠 Query memory</div>
+        <div class="cia-btn">🔬 Spawn research</div>
+      </div>
+      <div class="cia-wrap">
+        <textarea class="cia-input" placeholder="Ask ATHENA anything... ATHENA v2 will self-improve from this conversation." rows="2"></textarea>
+        <button class="cia-send">↑</button>
+      </div>
+      <div style="font-size:9px;color:var(--text3);margin-top:5px;font-family:monospace">
+        This conversation feeds MetaClaw · Skills generated from interactions improve all future analysis
+      </div>
+    </div>
+
+    <div class="agent-fleet">
+      <div class="af-chip on"><div class="af-dot"></div>EconAgent</div>
+      <div class="af-chip on"><div class="af-dot"></div>DefenseAgent</div>
+      <div class="af-chip busy"><div class="af-dot"></div>FP-Agent</div>
+      <div class="af-chip busy"><div class="af-dot"></div>SimEngine</div>
+      <div class="af-chip evo"><div class="af-dot"></div>MetaClaw</div>
+      <div class="af-chip evo"><div class="af-dot"></div>SkillRL</div>
+      <div class="af-chip on"><div class="af-dot"></div>RedATHENA</div>
+      <div class="af-chip busy"><div class="af-dot"></div>ResearchAgent×3</div>
+      <div class="af-chip on"><div class="af-dot"></div>ConstitutionAgent</div>
+    </div>
+  </aside>
+
+</div>
+
+<script>
+  // Live time
+  function t() {
+    const n = new Date();
+    const p = v => String(v).padStart(2,'0');
+    document.getElementById('t').textContent = `${p(n.getUTCHours())}:${p(n.getUTCMinutes())}:${p(n.getUTCSeconds())} UTC`;
+  }
+  setInterval(t, 1000); t();
+
+  // Particle background
+  const cv = document.getElementById('bg');
+  const cx = cv.getContext('2d');
+  cv.width = window.innerWidth; cv.height = window.innerHeight;
+  window.addEventListener('resize', () => { cv.width = window.innerWidth; cv.height = window.innerHeight; });
+  const pts = Array.from({length:60}, () => ({
+    x: Math.random()*cv.width, y: Math.random()*cv.height,
+    vx:(Math.random()-.5)*.25, vy:(Math.random()-.5)*.25,
+    r:Math.random()*1.2+.3, a:Math.random()*.4+.05
+  }));
+  function draw() {
+    cx.clearRect(0,0,cv.width,cv.height);
+    for(let i=0;i<pts.length;i++) {
+      for(let j=i+1;j<pts.length;j++) {
+        const dx=pts[i].x-pts[j].x, dy=pts[i].y-pts[j].y, d=Math.sqrt(dx*dx+dy*dy);
+        if(d<100){ cx.beginPath(); cx.moveTo(pts[i].x,pts[i].y); cx.lineTo(pts[j].x,pts[j].y); cx.strokeStyle=`rgba(0,212,170,${.05*(1-d/100)})`; cx.lineWidth=.4; cx.stroke(); }
+      }
+    }
+    pts.forEach(p => {
+      p.x+=p.vx; p.y+=p.vy;
+      if(p.x<0||p.x>cv.width) p.vx*=-1;
+      if(p.y<0||p.y>cv.height) p.vy*=-1;
+      cx.beginPath(); cx.arc(p.x,p.y,p.r,0,Math.PI*2);
+      cx.fillStyle=`rgba(0,212,170,${p.a})`; cx.fill();
+    });
+    requestAnimationFrame(draw);
+  }
+  draw();
+
+  // Skill bars
+  const sb = document.getElementById('skill-bars');
+  if(sb) {
+    const data = [45,52,61,58,70,80,75,88,91,95,102,98,110,115,108,120,130,125,140,138,150,148,162,155,170,168,175,180,190,195];
+    const mx = Math.max(...data);
+    data.forEach((v,i) => {
+      const b = document.createElement('div');
+      b.className = 'skill-bar' + (i===data.length-1?' latest':'');
+      b.style.height = (v/mx*100)+'%';
+      b.title = `Day ${i+1}: +${v} skills`;
+      sb.appendChild(b);
+    });
+  }
+
+  // Tab switching
+  function switchTab(el) {
+    document.querySelectorAll('.ct').forEach(t=>t.classList.remove('active'));
+    el.classList.add('active');
+  }
+
+  // Nav interactivity
+  document.querySelectorAll('.ni').forEach(n=>n.addEventListener('click',function(){
+    document.querySelectorAll('.ni').forEach(x=>x.classList.remove('active'));
+    this.classList.add('active');
+  }));
+
+  document.querySelectorAll('.ir-btn').forEach(b=>b.addEventListener('click',function(){
+    document.querySelectorAll('.ir-btn').forEach(x=>x.classList.remove('active'));
+    this.classList.add('active');
+  }));
+
+  // Scroll chat
+  const m = document.getElementById('msgs');
+  if(m) m.scrollTop = m.scrollHeight;
+
+  // Animate skill bars on load
+  document.querySelectorAll('.skill-bar').forEach((b,i) => {
+    const h = b.style.height;
+    b.style.height = '2px';
+    setTimeout(() => { b.style.transition = 'height 0.8s ease'; b.style.height = h; }, 100 + i*30);
+  });
+</script>
+</body>
+</html>

@@ -1,0 +1,1411 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ATHENA — Autonomous Thinking & Holistic Executive Network for America</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=JetBrains+Mono:wght@300;400;500&display=swap');
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --bg0: #040609;
+    --bg1: #080c12;
+    --bg2: #0d1220;
+    --bg3: #111828;
+    --teal: #00d4aa;
+    --teal-dim: #009977;
+    --teal-glow: rgba(0,212,170,0.15);
+    --amber: #f5a623;
+    --amber-dim: rgba(245,166,35,0.15);
+    --red: #ff4060;
+    --red-dim: rgba(255,64,96,0.12);
+    --blue: #4d9fff;
+    --blue-dim: rgba(77,159,255,0.12);
+    --purple: #a78bfa;
+    --text: #e2eaf6;
+    --text2: #6b7fa3;
+    --text3: #2d3a56;
+    --border: #151e30;
+    --border2: #1d2840;
+  }
+
+  html, body { height: 100%; overflow: hidden; }
+
+  body {
+    font-family: 'Space Grotesk', sans-serif;
+    background: var(--bg0);
+    color: var(--text);
+    font-size: 13px;
+  }
+
+  /* ——— CANVAS BACKGROUND ——— */
+  #bg-canvas {
+    position: fixed; inset: 0; z-index: 0;
+    pointer-events: none;
+  }
+
+  /* ——— LAYOUT ——— */
+  .shell {
+    position: relative; z-index: 1;
+    display: grid;
+    grid-template-rows: 48px 1fr;
+    grid-template-columns: 56px 220px 1fr 320px;
+    height: 100vh;
+    gap: 0;
+  }
+
+  /* ——— TOP BAR ——— */
+  .topbar {
+    grid-column: 1 / -1;
+    display: flex; align-items: center;
+    background: rgba(8,12,18,0.98);
+    border-bottom: 1px solid var(--border);
+    padding: 0 16px;
+    gap: 24px;
+  }
+
+  .topbar-logo {
+    display: flex; align-items: center; gap: 10px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 15px; font-weight: 500;
+    color: var(--teal);
+    letter-spacing: 0.1em;
+  }
+  .topbar-logo svg { width: 28px; height: 28px; }
+
+  .topbar-sep { width: 1px; height: 24px; background: var(--border2); }
+
+  .topbar-alert {
+    display: flex; align-items: center; gap: 6px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px; color: var(--teal);
+  }
+  .alert-dot {
+    width: 7px; height: 7px; border-radius: 50%;
+    background: var(--teal);
+    box-shadow: 0 0 8px var(--teal);
+    animation: pulse 2s ease-in-out infinite;
+  }
+
+  @keyframes pulse {
+    0%, 100% { opacity: 1; transform: scale(1); }
+    50% { opacity: 0.5; transform: scale(0.85); }
+  }
+
+  .topbar-metrics {
+    display: flex; align-items: center; gap: 20px;
+    margin-left: auto;
+  }
+
+  .tm {
+    display: flex; align-items: center; gap: 7px;
+    font-size: 11px;
+  }
+  .tm-label { color: var(--text2); text-transform: uppercase; letter-spacing: 0.08em; }
+  .tm-value { font-family: 'JetBrains Mono', monospace; font-weight: 500; }
+  .tm-value.pos { color: var(--teal); }
+  .tm-value.warn { color: var(--amber); }
+  .tm-value.neg { color: var(--red); }
+
+  .topbar-user {
+    display: flex; align-items: center; gap: 10px;
+    padding: 6px 12px;
+    background: var(--bg2);
+    border: 1px solid var(--border2);
+    border-radius: 8px;
+    cursor: pointer;
+    margin-left: 16px;
+  }
+  .user-avatar {
+    width: 26px; height: 26px; border-radius: 50%;
+    background: linear-gradient(135deg, var(--teal), var(--blue));
+    display: flex; align-items: center; justify-content: center;
+    font-size: 11px; font-weight: 700; color: var(--bg0);
+  }
+  .user-info { line-height: 1.3; }
+  .user-name { font-size: 12px; font-weight: 600; }
+  .user-role { font-size: 10px; color: var(--text2); }
+
+  .topbar-time {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px; color: var(--text2);
+    text-align: right;
+    line-height: 1.5;
+  }
+
+  /* ——— ICON SIDEBAR ——— */
+  .icon-sidebar {
+    background: rgba(8,12,18,0.98);
+    border-right: 1px solid var(--border);
+    display: flex; flex-direction: column;
+    align-items: center;
+    padding: 12px 0;
+    gap: 4px;
+  }
+
+  .icon-btn {
+    width: 40px; height: 40px; border-radius: 10px;
+    display: flex; align-items: center; justify-content: center;
+    cursor: pointer; border: none;
+    background: transparent; color: var(--text2);
+    transition: all 0.2s;
+    font-size: 17px;
+    position: relative;
+  }
+  .icon-btn:hover { background: var(--bg2); color: var(--text); }
+  .icon-btn.active {
+    background: var(--teal-glow);
+    color: var(--teal);
+    box-shadow: 0 0 12px rgba(0,212,170,0.1);
+  }
+  .icon-btn .badge {
+    position: absolute; top: 6px; right: 6px;
+    width: 7px; height: 7px; border-radius: 50%;
+    background: var(--red);
+    box-shadow: 0 0 6px var(--red);
+  }
+
+  /* ——— NAV SIDEBAR ——— */
+  .nav-sidebar {
+    background: rgba(9,13,21,0.97);
+    border-right: 1px solid var(--border);
+    overflow-y: auto;
+    padding: 16px 12px;
+  }
+
+  .nav-section-title {
+    font-size: 10px; font-weight: 600; letter-spacing: 0.1em;
+    text-transform: uppercase; color: var(--text3);
+    padding: 0 8px 8px;
+  }
+
+  .nav-item {
+    display: flex; align-items: center; gap: 10px;
+    padding: 8px 10px; border-radius: 8px;
+    cursor: pointer; color: var(--text2);
+    font-size: 12.5px; font-weight: 500;
+    transition: all 0.15s;
+    margin-bottom: 2px;
+  }
+  .nav-item:hover { background: var(--bg2); color: var(--text); }
+  .nav-item.active {
+    background: var(--teal-glow);
+    color: var(--teal);
+  }
+  .nav-item .nav-icon { font-size: 15px; flex-shrink: 0; }
+  .nav-item .nav-badge {
+    margin-left: auto; font-size: 10px;
+    background: var(--red-dim); color: var(--red);
+    padding: 2px 6px; border-radius: 4px;
+    font-family: 'JetBrains Mono', monospace;
+  }
+  .nav-item .nav-badge.info {
+    background: var(--blue-dim); color: var(--blue);
+  }
+
+  .nav-divider { height: 1px; background: var(--border); margin: 10px 0; }
+
+  /* ——— MAIN CONTENT ——— */
+  .main-content {
+    overflow-y: auto;
+    padding: 20px;
+    background: var(--bg0);
+    display: flex; flex-direction: column; gap: 16px;
+  }
+
+  .section-header {
+    display: flex; align-items: center; justify-content: space-between;
+    margin-bottom: 2px;
+  }
+  .section-title {
+    font-size: 11px; text-transform: uppercase;
+    letter-spacing: 0.1em; color: var(--text2); font-weight: 600;
+  }
+  .section-action {
+    font-size: 11px; color: var(--teal); cursor: pointer;
+  }
+
+  /* ——— WORLD MAP ——— */
+  .world-map-card {
+    background: var(--bg1);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    overflow: hidden;
+    position: relative;
+  }
+  .map-header {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 14px 16px 12px;
+    border-bottom: 1px solid var(--border);
+  }
+  .map-title { font-size: 13px; font-weight: 600; }
+  .map-status {
+    display: flex; align-items: center; gap: 6px;
+    font-size: 11px; color: var(--teal);
+    font-family: 'JetBrains Mono', monospace;
+  }
+
+  .map-body {
+    padding: 8px 16px 16px;
+    position: relative;
+  }
+
+  .world-svg-wrap {
+    width: 100%;
+    height: 200px;
+    position: relative;
+    background: radial-gradient(ellipse at center, rgba(0,212,170,0.04) 0%, transparent 70%);
+    overflow: hidden;
+  }
+
+  .world-svg-wrap svg {
+    width: 100%; height: 100%;
+    opacity: 0.8;
+  }
+
+  /* Hotspot blips */
+  .hotspot {
+    position: absolute;
+    width: 10px; height: 10px;
+    border-radius: 50%;
+    transform: translate(-50%, -50%);
+    cursor: pointer;
+  }
+  .hotspot::before {
+    content: '';
+    position: absolute;
+    inset: -4px;
+    border-radius: 50%;
+    border: 1px solid currentColor;
+    opacity: 0.4;
+    animation: ripple 2s ease-out infinite;
+  }
+  @keyframes ripple {
+    0% { transform: scale(0.8); opacity: 0.6; }
+    100% { transform: scale(2.2); opacity: 0; }
+  }
+  .hotspot.red { background: var(--red); color: var(--red); box-shadow: 0 0 10px var(--red); }
+  .hotspot.amber { background: var(--amber); color: var(--amber); box-shadow: 0 0 10px var(--amber); }
+  .hotspot.teal { background: var(--teal); color: var(--teal); box-shadow: 0 0 10px var(--teal); }
+
+  .map-legend {
+    display: flex; gap: 16px; margin-top: 10px;
+    font-size: 11px; color: var(--text2);
+  }
+  .legend-item { display: flex; align-items: center; gap: 5px; }
+  .legend-dot { width: 7px; height: 7px; border-radius: 50%; }
+
+  /* ——— METRICS ROW ——— */
+  .metrics-row {
+    display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px;
+  }
+
+  .metric-card {
+    background: var(--bg1);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 14px 16px;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .metric-card::after {
+    content: '';
+    position: absolute;
+    bottom: 0; left: 0; right: 0;
+    height: 2px;
+  }
+  .metric-card.pos::after { background: linear-gradient(90deg, transparent, var(--teal), transparent); }
+  .metric-card.warn::after { background: linear-gradient(90deg, transparent, var(--amber), transparent); }
+  .metric-card.neg::after { background: linear-gradient(90deg, transparent, var(--red), transparent); }
+  .metric-card.info::after { background: linear-gradient(90deg, transparent, var(--blue), transparent); }
+
+  .metric-label { font-size: 10px; color: var(--text2); text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 6px; }
+  .metric-value { font-family: 'JetBrains Mono', monospace; font-size: 22px; font-weight: 500; line-height: 1; margin-bottom: 6px; }
+  .metric-value.pos { color: var(--teal); }
+  .metric-value.warn { color: var(--amber); }
+  .metric-value.neg { color: var(--red); }
+  .metric-value.info { color: var(--blue); }
+
+  .metric-delta {
+    font-size: 11px;
+    display: flex; align-items: center; gap: 4px;
+  }
+  .metric-bar {
+    height: 3px; border-radius: 2px;
+    background: var(--border2);
+    margin-top: 8px; overflow: hidden;
+  }
+  .metric-bar-fill {
+    height: 100%; border-radius: 2px;
+    transition: width 1s ease;
+  }
+
+  /* ——— ADVISORY PANEL ——— */
+  .advisory-panel {
+    background: var(--bg1);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    overflow: hidden;
+  }
+
+  .advisory-header {
+    padding: 14px 16px;
+    border-bottom: 1px solid var(--border);
+    display: flex; align-items: center; justify-content: space-between;
+  }
+
+  .advisory-title { font-size: 13px; font-weight: 600; }
+
+  .advisory-badge {
+    font-size: 10px; font-family: 'JetBrains Mono', monospace;
+    padding: 3px 8px; border-radius: 4px;
+    background: rgba(0,212,170,0.12); color: var(--teal);
+    border: 1px solid rgba(0,212,170,0.2);
+  }
+
+  .advisory-item {
+    padding: 14px 16px;
+    border-bottom: 1px solid var(--border);
+    display: grid; grid-template-columns: 3px 1fr auto;
+    gap: 12px; align-items: start;
+  }
+  .advisory-item:last-child { border-bottom: none; }
+
+  .advisory-stripe { width: 3px; border-radius: 2px; align-self: stretch; min-height: 20px; }
+  .stripe-red { background: var(--red); box-shadow: 0 0 8px var(--red); }
+  .stripe-amber { background: var(--amber); box-shadow: 0 0 8px var(--amber); }
+  .stripe-teal { background: var(--teal); box-shadow: 0 0 8px var(--teal); }
+
+  .advisory-content {}
+  .advisory-domain {
+    font-size: 10px; color: var(--text2); text-transform: uppercase;
+    letter-spacing: 0.08em; margin-bottom: 4px;
+  }
+  .advisory-text { font-size: 12.5px; line-height: 1.5; font-weight: 500; }
+  .advisory-sub { font-size: 11px; color: var(--text2); margin-top: 4px; line-height: 1.4; }
+
+  .advisory-urgency {
+    text-align: right;
+    flex-shrink: 0;
+  }
+  .urgency-score {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 20px; font-weight: 500; line-height: 1;
+  }
+  .urgency-label { font-size: 9px; color: var(--text2); text-transform: uppercase; letter-spacing: 0.05em; }
+
+  /* ——— BOTTOM ROW ——— */
+  .bottom-row {
+    display: grid; grid-template-columns: 1fr 1fr; gap: 12px;
+  }
+
+  .mini-card {
+    background: var(--bg1);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    overflow: hidden;
+  }
+  .mini-card-header {
+    padding: 12px 14px 10px;
+    border-bottom: 1px solid var(--border);
+    font-size: 12px; font-weight: 600;
+    display: flex; align-items: center; justify-content: space-between;
+  }
+
+  /* ——— BUDGET BARS ——— */
+  .budget-list { padding: 12px 14px; display: flex; flex-direction: column; gap: 10px; }
+  .budget-row { }
+  .budget-meta { display: flex; justify-content: space-between; margin-bottom: 5px; }
+  .budget-name { font-size: 11.5px; color: var(--text); }
+  .budget-amount { font-family: 'JetBrains Mono', monospace; font-size: 11px; color: var(--text2); }
+  .budget-track { height: 4px; background: var(--border2); border-radius: 2px; overflow: hidden; }
+  .budget-fill { height: 100%; border-radius: 2px; }
+
+  /* ——— FEED ——— */
+  .feed-list { padding: 10px 14px; display: flex; flex-direction: column; gap: 8px; }
+  .feed-item { display: flex; gap: 10px; align-items: flex-start; }
+  .feed-dot { width: 7px; height: 7px; border-radius: 50%; margin-top: 4px; flex-shrink: 0; }
+  .feed-text { font-size: 12px; line-height: 1.45; color: var(--text); }
+  .feed-time { font-family: 'JetBrains Mono', monospace; font-size: 10px; color: var(--text3); margin-top: 2px; }
+
+  /* ——— CHAT PANEL ——— */
+  .chat-panel {
+    display: flex; flex-direction: column;
+    background: rgba(8,12,18,0.98);
+    border-left: 1px solid var(--border);
+    overflow: hidden;
+  }
+
+  .chat-header {
+    padding: 14px 16px;
+    border-bottom: 1px solid var(--border);
+    background: var(--bg1);
+  }
+  .chat-header-top {
+    display: flex; align-items: center; gap: 10px; margin-bottom: 10px;
+  }
+  .athena-avatar {
+    width: 32px; height: 32px; border-radius: 50%;
+    background: conic-gradient(from 0deg, var(--teal), var(--blue), var(--purple), var(--teal));
+    display: flex; align-items: center; justify-content: center;
+    font-size: 14px;
+    box-shadow: 0 0 16px rgba(0,212,170,0.3);
+  }
+  .chat-name { font-size: 13px; font-weight: 600; }
+  .chat-status { font-size: 11px; color: var(--teal); display: flex; align-items: center; gap: 4px; }
+
+  .chat-modes {
+    display: flex; gap: 6px;
+  }
+  .chat-mode-btn {
+    font-size: 10.5px; padding: 4px 10px; border-radius: 5px;
+    border: 1px solid var(--border2); background: transparent;
+    color: var(--text2); cursor: pointer; font-family: inherit;
+    transition: all 0.15s;
+  }
+  .chat-mode-btn.active {
+    background: var(--teal-glow);
+    border-color: rgba(0,212,170,0.3);
+    color: var(--teal);
+  }
+
+  .chat-messages {
+    flex: 1;
+    overflow-y: auto;
+    padding: 14px 14px;
+    display: flex; flex-direction: column; gap: 12px;
+  }
+
+  .msg {
+    display: flex; flex-direction: column; gap: 4px;
+    max-width: 92%;
+  }
+  .msg.user { align-self: flex-end; align-items: flex-end; }
+  .msg.ai { align-self: flex-start; align-items: flex-start; }
+
+  .msg-bubble {
+    padding: 10px 13px;
+    border-radius: 12px;
+    font-size: 12.5px; line-height: 1.55;
+  }
+
+  .msg.user .msg-bubble {
+    background: linear-gradient(135deg, rgba(0,212,170,0.2), rgba(77,159,255,0.15));
+    border: 1px solid rgba(0,212,170,0.25);
+    color: var(--text);
+    border-bottom-right-radius: 4px;
+  }
+
+  .msg.ai .msg-bubble {
+    background: var(--bg2);
+    border: 1px solid var(--border2);
+    color: var(--text);
+    border-bottom-left-radius: 4px;
+  }
+
+  .msg-meta {
+    font-size: 10px; color: var(--text3);
+    font-family: 'JetBrains Mono', monospace;
+  }
+
+  .ai-prefix {
+    font-size: 10px; color: var(--teal);
+    font-family: 'JetBrains Mono', monospace;
+    text-transform: uppercase; letter-spacing: 0.08em;
+    margin-bottom: 2px; display: flex; align-items: center; gap: 4px;
+  }
+  .ai-prefix-dot { width: 5px; height: 5px; border-radius: 50%; background: var(--teal); }
+
+  .confidence-bar {
+    display: flex; align-items: center; gap: 6px;
+    margin-top: 5px;
+  }
+  .conf-label { font-size: 10px; color: var(--text3); }
+  .conf-track { flex: 1; height: 2px; background: var(--border2); border-radius: 1px; }
+  .conf-fill { height: 100%; border-radius: 1px; background: var(--teal); }
+  .conf-val { font-size: 10px; font-family: 'JetBrains Mono', monospace; color: var(--teal); }
+
+  .typing-indicator {
+    display: flex; align-items: center; gap: 8px;
+    padding: 8px 12px;
+    background: var(--bg2);
+    border: 1px solid var(--border2);
+    border-radius: 10px; border-bottom-left-radius: 4px;
+    width: fit-content;
+  }
+  .typing-dots { display: flex; gap: 3px; }
+  .typing-dots span {
+    width: 5px; height: 5px; border-radius: 50%;
+    background: var(--teal); opacity: 0.4;
+    animation: dot-bounce 1.2s ease-in-out infinite;
+  }
+  .typing-dots span:nth-child(2) { animation-delay: 0.2s; }
+  .typing-dots span:nth-child(3) { animation-delay: 0.4s; }
+  @keyframes dot-bounce {
+    0%, 80%, 100% { transform: scale(0.8); opacity: 0.4; }
+    40% { transform: scale(1.2); opacity: 1; }
+  }
+
+  .chat-input-area {
+    padding: 12px 14px;
+    border-top: 1px solid var(--border);
+    background: var(--bg1);
+  }
+  .chat-input-wrap {
+    display: flex; align-items: flex-end; gap: 8px;
+  }
+  .chat-input {
+    flex: 1;
+    background: var(--bg2);
+    border: 1px solid var(--border2);
+    border-radius: 10px;
+    padding: 10px 14px;
+    font-size: 12.5px; color: var(--text);
+    font-family: inherit;
+    resize: none; outline: none;
+    min-height: 40px; max-height: 100px;
+    line-height: 1.4;
+    transition: border-color 0.15s;
+  }
+  .chat-input:focus { border-color: rgba(0,212,170,0.4); }
+  .chat-input::placeholder { color: var(--text3); }
+
+  .chat-send {
+    width: 38px; height: 38px; border-radius: 9px;
+    background: var(--teal);
+    border: none; cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 16px; color: var(--bg0);
+    flex-shrink: 0;
+    transition: all 0.15s;
+  }
+  .chat-send:hover { background: var(--teal-dim); transform: scale(1.05); box-shadow: 0 0 16px rgba(0,212,170,0.4); }
+
+  .chat-actions {
+    display: flex; gap: 6px; margin-bottom: 8px;
+  }
+  .chat-action-btn {
+    font-size: 10px; padding: 3px 8px;
+    border-radius: 4px; border: 1px solid var(--border2);
+    background: transparent; color: var(--text2);
+    cursor: pointer; font-family: inherit;
+    transition: all 0.15s;
+  }
+  .chat-action-btn:hover { border-color: rgba(0,212,170,0.3); color: var(--teal); }
+
+  /* ——— AGENT STATUS (bottom of chat) ——— */
+  .agent-status {
+    padding: 10px 14px;
+    border-top: 1px solid var(--border);
+    display: flex; flex-direction: column; gap: 6px;
+  }
+  .agent-status-title {
+    font-size: 10px; text-transform: uppercase; letter-spacing: 0.08em;
+    color: var(--text3); font-weight: 600;
+  }
+  .agents-row { display: flex; gap: 6px; flex-wrap: wrap; }
+  .agent-chip {
+    font-size: 10px; padding: 3px 8px; border-radius: 4px;
+    border: 1px solid;
+    font-family: 'JetBrains Mono', monospace;
+    display: flex; align-items: center; gap: 4px;
+  }
+  .agent-chip.active {
+    border-color: rgba(0,212,170,0.3);
+    background: rgba(0,212,170,0.08);
+    color: var(--teal);
+  }
+  .agent-chip.busy {
+    border-color: rgba(245,166,35,0.3);
+    background: rgba(245,166,35,0.08);
+    color: var(--amber);
+  }
+  .agent-chip.idle {
+    border-color: var(--border);
+    color: var(--text3);
+  }
+  .agent-status-dot { width: 4px; height: 4px; border-radius: 50%; }
+  .active .agent-status-dot { background: var(--teal); animation: pulse 1.5s infinite; }
+  .busy .agent-status-dot { background: var(--amber); animation: pulse 0.8s infinite; }
+  .idle .agent-status-dot { background: var(--text3); }
+
+  /* ——— SCROLLBAR ——— */
+  ::-webkit-scrollbar { width: 4px; height: 4px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb { background: var(--border2); border-radius: 2px; }
+  ::-webkit-scrollbar-thumb:hover { background: var(--text3); }
+
+  /* ——— CONFIDENCE METER ——— */
+  .confidence-meters {
+    display: flex; gap: 8px; align-items: center;
+  }
+  .cmeter {
+    display: flex; flex-direction: column; align-items: center; gap: 3px;
+    font-size: 10px; color: var(--text2);
+  }
+  .cmeter-ring {
+    width: 32px; height: 32px;
+    border-radius: 50%;
+    border: 2px solid var(--border2);
+    position: relative;
+    display: flex; align-items: center; justify-content: center;
+  }
+  .cmeter-val {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 9px; font-weight: 600;
+  }
+
+  /* ——— MINI CHART ——— */
+  .sparkline { display: flex; align-items: flex-end; gap: 2px; height: 32px; }
+  .spark-bar {
+    width: 5px; border-radius: 2px 2px 0 0;
+    background: var(--teal); opacity: 0.5;
+    transition: opacity 0.15s;
+  }
+  .spark-bar:last-child { opacity: 1; }
+
+  /* Mobile hint */
+  .mobile-hint {
+    display: none;
+    position: fixed; inset: 0; z-index: 999;
+    background: var(--bg0);
+    flex-direction: column; align-items: center; justify-content: center;
+    gap: 16px; text-align: center; padding: 32px;
+  }
+  @media (max-width: 900px) {
+    .shell { display: none; }
+    .mobile-hint { display: flex; }
+  }
+
+  /* ——— GLOW EFFECTS ——— */
+  .teal-glow { text-shadow: 0 0 20px rgba(0,212,170,0.5); }
+
+  /* Scan line effect */
+  .main-content::after {
+    content: '';
+    position: fixed;
+    top: 0; left: 0; right: 0;
+    height: 2px;
+    background: linear-gradient(90deg, transparent, rgba(0,212,170,0.3), transparent);
+    animation: scan 4s linear infinite;
+    pointer-events: none;
+    z-index: 100;
+  }
+  @keyframes scan {
+    0% { top: 48px; opacity: 0; }
+    5% { opacity: 1; }
+    95% { opacity: 1; }
+    100% { top: 100vh; opacity: 0; }
+  }
+
+</style>
+</head>
+<body>
+
+<canvas id="bg-canvas"></canvas>
+
+<div class="mobile-hint">
+  <div style="font-size: 48px">🛡️</div>
+  <div style="font-size: 20px; font-weight: 700; color: var(--teal)">ATHENA</div>
+  <div style="color: var(--text2)">This interface is optimized for desktop. Please view on a larger screen.</div>
+</div>
+
+<div class="shell">
+
+  <!-- TOP BAR -->
+  <header class="topbar">
+    <div class="topbar-logo">
+      <svg viewBox="0 0 28 28" fill="none">
+        <polygon points="14,2 26,8 26,20 14,26 2,20 2,8" stroke="#00d4aa" stroke-width="1.5" fill="none" opacity="0.6"/>
+        <polygon points="14,6 22,10 22,18 14,22 6,18 6,10" stroke="#00d4aa" stroke-width="1" fill="none" opacity="0.4"/>
+        <circle cx="14" cy="14" r="4" fill="#00d4aa" opacity="0.9"/>
+        <line x1="14" y1="2" x2="14" y2="6" stroke="#00d4aa" stroke-width="1.5"/>
+        <line x1="26" y1="8" x2="22" y2="10" stroke="#00d4aa" stroke-width="1.5"/>
+        <line x1="26" y1="20" x2="22" y2="18" stroke="#00d4aa" stroke-width="1.5"/>
+        <line x1="14" y1="26" x2="14" y2="22" stroke="#00d4aa" stroke-width="1.5"/>
+        <line x1="2" y1="20" x2="6" y2="18" stroke="#00d4aa" stroke-width="1.5"/>
+        <line x1="2" y1="8" x2="6" y2="10" stroke="#00d4aa" stroke-width="1.5"/>
+      </svg>
+      ATHENA
+    </div>
+    <div class="topbar-sep"></div>
+    <div class="topbar-alert">
+      <div class="alert-dot"></div>
+      LIVE · 847 DATA STREAMS ACTIVE
+    </div>
+
+    <div class="topbar-metrics">
+      <div class="tm">
+        <span class="tm-label">Flourishing Index</span>
+        <span class="tm-value pos">74.2</span>
+        <span style="font-size:10px; color: var(--teal)">↑ 0.3</span>
+      </div>
+      <div class="tm">
+        <span class="tm-label">Global Tension</span>
+        <span class="tm-value warn">ELEVATED</span>
+      </div>
+      <div class="tm">
+        <span class="tm-label">Econ Health</span>
+        <span class="tm-value pos">68/100</span>
+      </div>
+      <div class="tm">
+        <span class="tm-label">Env Index</span>
+        <span class="tm-value warn">41/100</span>
+      </div>
+      <div class="tm">
+        <span class="tm-label">Defense DEFCON</span>
+        <span class="tm-value pos">5</span>
+      </div>
+    </div>
+
+    <div style="margin-left: auto; display: flex; align-items: center; gap: 12px;">
+      <div class="topbar-time">
+        <div id="live-time" style="font-weight: 500; color: var(--text);">03:47:22 UTC</div>
+        <div>MARCH 31, 2026</div>
+      </div>
+      <div class="topbar-user">
+        <div class="user-avatar">CD</div>
+        <div class="user-info">
+          <div class="user-name">Chris DiMarco</div>
+          <div class="user-role">AUTHORIZED OPERATOR · LEVEL 5</div>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <!-- ICON SIDEBAR -->
+  <nav class="icon-sidebar">
+    <button class="icon-btn active" title="Dashboard">⬡</button>
+    <button class="icon-btn" title="World Intelligence">🌐</button>
+    <button class="icon-btn" title="Congress" style="position:relative">
+      🏛
+      <span class="badge"></span>
+    </button>
+    <button class="icon-btn" title="Economy">📊</button>
+    <button class="icon-btn" title="Defense">🛡</button>
+    <button class="icon-btn" title="Simulation">⚗️</button>
+    <div style="flex:1"></div>
+    <button class="icon-btn" title="Memory / Knowledge Graph">🧠</button>
+    <button class="icon-btn" title="Agent Status">⚙️</button>
+    <button class="icon-btn" title="Settings">◈</button>
+  </nav>
+
+  <!-- NAV SIDEBAR -->
+  <aside class="nav-sidebar">
+    <div class="nav-section-title">Command</div>
+    <div class="nav-item active">
+      <span class="nav-icon">◈</span>
+      Executive Dashboard
+    </div>
+    <div class="nav-item">
+      <span class="nav-icon">🌐</span>
+      World Intelligence
+    </div>
+    <div class="nav-item">
+      <span class="nav-icon">⚠️</span>
+      Active Advisories
+      <span class="nav-badge">7</span>
+    </div>
+
+    <div class="nav-divider"></div>
+    <div class="nav-section-title">Government</div>
+
+    <div class="nav-item">
+      <span class="nav-icon">🏛</span>
+      Congress & Legislation
+      <span class="nav-badge">12</span>
+    </div>
+    <div class="nav-item">
+      <span class="nav-icon">⚖️</span>
+      Judiciary
+    </div>
+    <div class="nav-item">
+      <span class="nav-icon">📋</span>
+      Executive Agencies
+    </div>
+    <div class="nav-item">
+      <span class="nav-icon">💰</span>
+      Federal Budget & Debt
+    </div>
+    <div class="nav-item">
+      <span class="nav-icon">🗳️</span>
+      Members & Officials
+    </div>
+
+    <div class="nav-divider"></div>
+    <div class="nav-section-title">Policy Domains</div>
+
+    <div class="nav-item">
+      <span class="nav-icon">📈</span>
+      Economy & Finance
+    </div>
+    <div class="nav-item">
+      <span class="nav-icon">🛡</span>
+      National Defense
+    </div>
+    <div class="nav-item">
+      <span class="nav-icon">🌍</span>
+      Foreign Policy
+    </div>
+    <div class="nav-item">
+      <span class="nav-icon">🌿</span>
+      Environment & Climate
+    </div>
+    <div class="nav-item">
+      <span class="nav-icon">🏥</span>
+      Public Health
+    </div>
+    <div class="nav-item">
+      <span class="nav-icon">🎓</span>
+      Education & Science
+    </div>
+    <div class="nav-item">
+      <span class="nav-icon">⚖️</span>
+      Civil Rights & Justice
+    </div>
+
+    <div class="nav-divider"></div>
+    <div class="nav-section-title">Simulation</div>
+
+    <div class="nav-item">
+      <span class="nav-icon">⚗️</span>
+      Policy Simulator
+    </div>
+    <div class="nav-item">
+      <span class="nav-icon">🔮</span>
+      Scenario Forecasting
+    </div>
+    <div class="nav-item">
+      <span class="nav-icon">📐</span>
+      Game Theory Engine
+    </div>
+
+    <div class="nav-divider"></div>
+    <div class="nav-section-title">ATHENA System</div>
+
+    <div class="nav-item">
+      <span class="nav-icon">🧠</span>
+      Knowledge Graph
+    </div>
+    <div class="nav-item">
+      <span class="nav-icon">🤖</span>
+      Agent Fleet
+      <span class="nav-badge info">24</span>
+    </div>
+    <div class="nav-item">
+      <span class="nav-icon">📜</span>
+      Decision Audit Log
+    </div>
+    <div class="nav-item">
+      <span class="nav-icon">💡</span>
+      Self-Learning History
+    </div>
+  </aside>
+
+  <!-- MAIN CONTENT -->
+  <main class="main-content">
+
+    <!-- World Map -->
+    <div class="world-map-card">
+      <div class="map-header">
+        <div>
+          <div class="map-title">Global Intelligence Map</div>
+          <div style="font-size: 11px; color: var(--text2); margin-top: 3px;">Real-time synthesis from 312 international intelligence streams</div>
+        </div>
+        <div style="display:flex; gap: 12px; align-items:center">
+          <div class="map-status">
+            <div class="alert-dot" style="background: var(--teal); box-shadow: 0 0 8px var(--teal);"></div>
+            LIVE FEED
+          </div>
+          <div style="font-size: 11px; padding: 4px 10px; border-radius: 5px; border: 1px solid var(--border2); color: var(--text2); cursor:pointer;">Filter</div>
+          <div style="font-size: 11px; padding: 4px 10px; border-radius: 5px; border: 1px solid var(--border2); color: var(--text2); cursor:pointer;">Expand ↗</div>
+        </div>
+      </div>
+      <div class="map-body">
+        <div class="world-svg-wrap" id="map-container">
+          <!-- World Map SVG (simplified continents) -->
+          <svg viewBox="0 0 900 400" preserveAspectRatio="xMidYMid meet">
+            <!-- Grid lines -->
+            <defs>
+              <pattern id="grid" width="60" height="40" patternUnits="userSpaceOnUse">
+                <path d="M 60 0 L 0 0 0 40" fill="none" stroke="#151e30" stroke-width="0.5"/>
+              </pattern>
+            </defs>
+            <rect width="900" height="400" fill="url(#grid)"/>
+
+            <!-- North America -->
+            <path d="M 120,60 L 200,50 L 240,80 L 270,140 L 260,200 L 230,240 L 200,280 L 170,260 L 140,200 L 100,160 L 80,120 Z"
+                  fill="rgba(0,212,170,0.08)" stroke="#1d2840" stroke-width="1.5"/>
+            <!-- Central America -->
+            <path d="M 200,280 L 220,320 L 210,350 L 190,340 L 185,300 Z"
+                  fill="rgba(0,212,170,0.06)" stroke="#1d2840" stroke-width="1.5"/>
+            <!-- South America -->
+            <path d="M 210,350 L 250,360 L 290,400 L 300,460 L 270,500 L 230,510 L 200,480 L 190,420 L 200,380 Z"
+                  fill="rgba(0,212,170,0.08)" stroke="#1d2840" stroke-width="1.5"/>
+            <!-- Greenland -->
+            <path d="M 280,20 L 330,15 L 360,40 L 350,80 L 310,85 L 280,60 Z"
+                  fill="rgba(0,212,170,0.05)" stroke="#1d2840" stroke-width="1"/>
+            <!-- Europe -->
+            <path d="M 420,60 L 480,55 L 510,80 L 510,130 L 490,150 L 460,140 L 430,120 L 410,90 Z"
+                  fill="rgba(77,159,255,0.1)" stroke="#1d2840" stroke-width="1.5"/>
+            <!-- Africa -->
+            <path d="M 430,160 L 500,150 L 540,180 L 550,260 L 530,320 L 490,360 L 450,350 L 420,290 L 415,220 Z"
+                  fill="rgba(0,212,170,0.07)" stroke="#1d2840" stroke-width="1.5"/>
+            <!-- Middle East -->
+            <path d="M 510,130 L 570,120 L 610,150 L 600,190 L 560,200 L 520,180 Z"
+                  fill="rgba(245,166,35,0.1)" stroke="#1d2840" stroke-width="1.5"/>
+            <!-- Russia/Central Asia -->
+            <path d="M 480,55 L 650,40 L 720,60 L 730,100 L 700,130 L 640,140 L 590,120 L 540,110 L 510,80 Z"
+                  fill="rgba(77,159,255,0.07)" stroke="#1d2840" stroke-width="1.5"/>
+            <!-- China/East Asia -->
+            <path d="M 640,80 L 730,70 L 780,100 L 790,160 L 760,190 L 710,180 L 670,150 L 640,120 Z"
+                  fill="rgba(255,64,96,0.08)" stroke="#1d2840" stroke-width="1.5"/>
+            <!-- South/SE Asia -->
+            <path d="M 590,160 L 650,155 L 700,180 L 730,220 L 720,250 L 690,260 L 660,240 L 630,200 Z"
+                  fill="rgba(0,212,170,0.06)" stroke="#1d2840" stroke-width="1.5"/>
+            <!-- Japan/Korea -->
+            <path d="M 770,100 L 800,105 L 815,130 L 800,150 L 780,140 L 768,120 Z"
+                  fill="rgba(77,159,255,0.1)" stroke="#1d2840" stroke-width="1"/>
+            <!-- Australia -->
+            <path d="M 720,300 L 800,290 L 840,330 L 830,380 L 790,400 L 740,390 L 710,350 Z"
+                  fill="rgba(0,212,170,0.07)" stroke="#1d2840" stroke-width="1.5"/>
+
+            <!-- USA highlight (active) -->
+            <path d="M 120,60 L 200,50 L 240,80 L 270,140 L 260,200 L 230,240 L 200,280 L 170,260 L 140,200 L 100,160 L 80,120 Z"
+                  fill="rgba(0,212,170,0.15)" stroke="rgba(0,212,170,0.4)" stroke-width="1.5"/>
+          </svg>
+
+          <!-- Hotspots -->
+          <!-- DC (ATHENA HQ) -->
+          <div class="hotspot teal" style="left: 21%; top: 40%;" title="Washington D.C. — ATHENA Prime"></div>
+          <!-- Middle East tension -->
+          <div class="hotspot red" style="left: 58%; top: 35%;" title="Conflict Zone: Active"></div>
+          <!-- Ukraine -->
+          <div class="hotspot amber" style="left: 51%; top: 22%;" title="Geopolitical Tension: Elevated"></div>
+          <!-- Taiwan Strait -->
+          <div class="hotspot red" style="left: 79%; top: 35%;" title="Taiwan Strait: High Tension"></div>
+          <!-- Climate: Amazon -->
+          <div class="hotspot amber" style="left: 27%; top: 72%;" title="Amazon Deforestation Alert"></div>
+          <!-- NATO -->
+          <div class="hotspot teal" style="left: 46%; top: 18%;" title="NATO: Alliance Active"></div>
+          <!-- India -->
+          <div class="hotspot teal" style="left: 63%; top: 45%;" title="India: Strategic Partner"></div>
+        </div>
+
+        <div class="map-legend">
+          <div class="legend-item"><div class="legend-dot" style="background: var(--red); box-shadow: 0 0 5px var(--red)"></div>Critical threat</div>
+          <div class="legend-item"><div class="legend-dot" style="background: var(--amber); box-shadow: 0 0 5px var(--amber)"></div>Elevated risk</div>
+          <div class="legend-item"><div class="legend-dot" style="background: var(--teal); box-shadow: 0 0 5px var(--teal)"></div>Active cooperation</div>
+          <div style="margin-left: auto; font-size: 11px; color: var(--text3);">Last updated: 47 seconds ago</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Key Metrics -->
+    <div>
+      <div class="section-header">
+        <div class="section-title">National Vitals</div>
+        <div class="section-action">View all indicators →</div>
+      </div>
+      <div class="metrics-row" style="margin-top: 10px">
+        <div class="metric-card pos">
+          <div class="metric-label">Human Flourishing Index</div>
+          <div class="metric-value pos">74.2</div>
+          <div class="metric-delta" style="color: var(--teal)">
+            <span>↑ +0.3 this week</span>
+          </div>
+          <div class="metric-bar"><div class="metric-bar-fill" style="width: 74.2%; background: var(--teal)"></div></div>
+        </div>
+        <div class="metric-card pos">
+          <div class="metric-label">Economic Health Score</div>
+          <div class="metric-value pos">68</div>
+          <div class="metric-delta" style="color: var(--text2)">
+            <span>GDP ↑ 2.4% · Unemployment 3.8%</span>
+          </div>
+          <div class="metric-bar"><div class="metric-bar-fill" style="width: 68%; background: var(--teal)"></div></div>
+        </div>
+        <div class="metric-card warn">
+          <div class="metric-label">Environmental Index</div>
+          <div class="metric-value warn">41</div>
+          <div class="metric-delta" style="color: var(--red)">
+            <span>↓ CO₂ 421ppm · Deforestation ↑</span>
+          </div>
+          <div class="metric-bar"><div class="metric-bar-fill" style="width: 41%; background: var(--amber)"></div></div>
+        </div>
+        <div class="metric-card info">
+          <div class="metric-label">Federal Debt / GDP</div>
+          <div class="metric-value neg">127%</div>
+          <div class="metric-delta" style="color: var(--red)">
+            <span>↑ $36.2T total · ATHENA: Critical</span>
+          </div>
+          <div class="metric-bar"><div class="metric-bar-fill" style="width: 95%; background: var(--red)"></div></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ATHENA Advisories -->
+    <div class="advisory-panel">
+      <div class="advisory-header">
+        <div class="advisory-title">⚡ ATHENA Active Advisories</div>
+        <div class="advisory-badge">7 ACTIVE · UPDATED 2m AGO</div>
+      </div>
+
+      <div class="advisory-item">
+        <div class="advisory-stripe stripe-red"></div>
+        <div class="advisory-content">
+          <div class="advisory-domain">🛡 National Security · Taiwan Strait</div>
+          <div class="advisory-text">PLAAF incursions into Taiwan ADIZ have increased 340% this quarter. ATHENA models a 23% probability of kinetic escalation within 90 days without diplomatic intervention.</div>
+          <div class="advisory-sub">Recommended action: Expedite carrier group repositioning; schedule trilateral talks with Japan and South Korea; invoke QUAD framework. Economic leverage through semiconductor supply chain pressure.</div>
+        </div>
+        <div class="advisory-urgency">
+          <div class="urgency-score" style="color: var(--red)">9.1</div>
+          <div class="urgency-label">URGENCY</div>
+        </div>
+      </div>
+
+      <div class="advisory-item">
+        <div class="advisory-stripe stripe-red"></div>
+        <div class="advisory-content">
+          <div class="advisory-domain">💰 Fiscal · Federal Debt Crisis</div>
+          <div class="advisory-text">Debt service will consume 18.4% of federal revenue by FY2028 if current trajectory holds. ATHENA projects credit rating downgrade within 18 months without structural reform.</div>
+          <div class="advisory-sub">Recommended: Implement ATHENA's fiscal consolidation package — $1.8T savings over 10 years through targeted spending restructuring and tax base broadening. Full analysis available.</div>
+        </div>
+        <div class="advisory-urgency">
+          <div class="urgency-score" style="color: var(--red)">8.7</div>
+          <div class="urgency-label">URGENCY</div>
+        </div>
+      </div>
+
+      <div class="advisory-item">
+        <div class="advisory-stripe stripe-amber"></div>
+        <div class="advisory-content">
+          <div class="advisory-domain">🌿 Environment · Climate Tipping Points</div>
+          <div class="advisory-text">3 of 9 planetary boundaries now breached. Amazon biome collapse probability reaches 31% if global temperatures exceed 1.6°C. Window for intervention: 4–7 years.</div>
+          <div class="advisory-sub">Recommended: Fast-track Clean Energy Transition Act; carbon border adjustment mechanism; reforestation investment package of $45B over 5 years. ROI: 12:1 in avoided damage costs.</div>
+        </div>
+        <div class="advisory-urgency">
+          <div class="urgency-score" style="color: var(--amber)">7.8</div>
+          <div class="urgency-label">URGENCY</div>
+        </div>
+      </div>
+
+      <div class="advisory-item">
+        <div class="advisory-stripe stripe-teal"></div>
+        <div class="advisory-content">
+          <div class="advisory-domain">🎓 Opportunity · AI Education Gap</div>
+          <div class="advisory-text">US leads in AI research but lags in workforce readiness. ATHENA models $4.2T in productivity gains available over 10 years through targeted STEM + AI education investment.</div>
+          <div class="advisory-sub">Recommended: $180B AI education initiative, community college retooling, apprenticeship programs with tech sector. Aligns with industrial competitiveness and social mobility objectives.</div>
+        </div>
+        <div class="advisory-urgency">
+          <div class="urgency-score" style="color: var(--teal)">6.2</div>
+          <div class="urgency-label">URGENCY</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Bottom Row -->
+    <div class="bottom-row">
+      <!-- Budget breakdown -->
+      <div class="mini-card">
+        <div class="mini-card-header">
+          💰 FY2026 Federal Budget ($6.75T)
+          <span style="font-size:11px; color: var(--red)">Deficit: $1.87T</span>
+        </div>
+        <div class="budget-list">
+          <div class="budget-row">
+            <div class="budget-meta"><span class="budget-name">Social Security & Medicare</span><span class="budget-amount">$2.10T · 31%</span></div>
+            <div class="budget-track"><div class="budget-fill" style="width:31%; background: var(--blue)"></div></div>
+          </div>
+          <div class="budget-row">
+            <div class="budget-meta"><span class="budget-name">National Defense</span><span class="budget-amount">$889B · 13%</span></div>
+            <div class="budget-track"><div class="budget-fill" style="width:13%; background: var(--red)"></div></div>
+          </div>
+          <div class="budget-row">
+            <div class="budget-meta"><span class="budget-name">Debt Service</span><span class="budget-amount">$892B · 13%</span></div>
+            <div class="budget-track"><div class="budget-fill" style="width:13%; background: var(--amber)"></div></div>
+          </div>
+          <div class="budget-row">
+            <div class="budget-meta"><span class="budget-name">Education & Science</span><span class="budget-amount">$268B · 4%</span></div>
+            <div class="budget-track"><div class="budget-fill" style="width:4%; background: var(--teal)"></div></div>
+          </div>
+          <div class="budget-row">
+            <div class="budget-meta"><span class="budget-name">Environment & Climate</span><span class="budget-amount">$52B · 0.8%</span></div>
+            <div class="budget-track"><div class="budget-fill" style="width:0.8%; background: var(--teal)"></div></div>
+          </div>
+          <div class="budget-row">
+            <div class="budget-meta"><span class="budget-name">Other Programs</span><span class="budget-amount">$2.54T · 38%</span></div>
+            <div class="budget-track"><div class="budget-fill" style="width:38%; background: var(--text3)"></div></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Events feed -->
+      <div class="mini-card">
+        <div class="mini-card-header">
+          📡 Live Intelligence Feed
+          <span style="font-size:10px; color: var(--teal); font-family: monospace;">LIVE</span>
+        </div>
+        <div class="feed-list">
+          <div class="feed-item">
+            <div class="feed-dot" style="background: var(--red)"></div>
+            <div>
+              <div class="feed-text">PLAAF launched 24 aircraft sorties near Taiwan ADIZ — ATHENA alert level elevated to HIGH</div>
+              <div class="feed-time">2m ago · Defense Intelligence</div>
+            </div>
+          </div>
+          <div class="feed-item">
+            <div class="feed-dot" style="background: var(--amber)"></div>
+            <div>
+              <div class="feed-text">Senate vote on Climate Investment Act stalled — ATHENA projects delay will add $230B in long-term costs</div>
+              <div class="feed-time">14m ago · Congressional Tracker</div>
+            </div>
+          </div>
+          <div class="feed-item">
+            <div class="feed-dot" style="background: var(--teal)"></div>
+            <div>
+              <div class="feed-text">G7 Finance Ministers reached preliminary agreement on AI governance framework — ATHENA assessment: +0.4 diplomatic index</div>
+              <div class="feed-time">31m ago · State Department Feed</div>
+            </div>
+          </div>
+          <div class="feed-item">
+            <div class="feed-dot" style="background: var(--amber)"></div>
+            <div>
+              <div class="feed-text">CPI report: Inflation ticked up 0.2% — ATHENA models Fed rate hold likely at next FOMC meeting</div>
+              <div class="feed-time">1h ago · Treasury / BLS Data</div>
+            </div>
+          </div>
+          <div class="feed-item">
+            <div class="feed-dot" style="background: var(--blue)"></div>
+            <div>
+              <div class="feed-text">Arctic sea ice extent 18% below 30-year average — ATHENA climate model updated</div>
+              <div class="feed-time">2h ago · NOAA / Satellite Data</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </main>
+
+  <!-- CHAT PANEL -->
+  <aside class="chat-panel">
+    <div class="chat-header">
+      <div class="chat-header-top">
+        <div class="athena-avatar">⬡</div>
+        <div>
+          <div class="chat-name">ATHENA Intelligence Interface</div>
+          <div class="chat-status">
+            <div class="alert-dot" style="width:5px; height:5px;"></div>
+            24 agents active · Extended thinking ON
+          </div>
+        </div>
+      </div>
+      <div class="chat-modes">
+        <button class="chat-mode-btn active">Advisory</button>
+        <button class="chat-mode-btn">Analysis</button>
+        <button class="chat-mode-btn">Simulate</button>
+        <button class="chat-mode-btn">Briefing</button>
+      </div>
+    </div>
+
+    <div class="chat-messages" id="chat-messages">
+
+      <div class="msg ai">
+        <div class="ai-prefix"><div class="ai-prefix-dot"></div>ATHENA · SYSTEM INIT</div>
+        <div class="msg-bubble">
+          Good morning. I've completed today's intelligence synthesis across 847 data streams. I have 7 active advisories requiring your attention, with 2 at critical urgency. The world state is <strong>ELEVATED TENSION</strong> with primary flashpoints in the Taiwan Strait and ongoing fiscal stress signals.<br><br>
+          How would you like to proceed? I can brief you on any specific domain, run a simulation, or you can ask me anything about the state of the government or world affairs.
+        </div>
+        <div class="confidence-bar">
+          <span class="conf-label">Confidence</span>
+          <div class="conf-track"><div class="conf-fill" style="width: 94%"></div></div>
+          <span class="conf-val">94%</span>
+        </div>
+        <div class="msg-meta">08:00:12 · 24 agents · 312 sources synthesized</div>
+      </div>
+
+      <div class="msg user">
+        <div class="msg-bubble">What's the single most important thing I should focus on today to improve human flourishing?</div>
+        <div class="msg-meta">08:01:34 · Operator</div>
+      </div>
+
+      <div class="msg ai">
+        <div class="ai-prefix"><div class="ai-prefix-dot"></div>ATHENA · ADVISORY RESPONSE</div>
+        <div class="msg-bubble">
+          Running multi-domain optimization across all 847 streams...<br><br>
+          <strong>Answer: The Taiwan Strait situation.</strong><br><br>
+          A kinetic conflict there would kill hundreds of thousands, collapse global semiconductor supply chains, trigger a recession affecting 4 billion people, and set back international cooperation on climate by a decade. The probability window for diplomatic intervention is <em>right now</em> — the next 60 days.<br><br>
+          My recommendation: Convene an emergency backchannel with PRC leadership through the Singapore diplomatic track, jointly with Japan's Prime Minister. Offer concrete economic engagement terms. The game theory analysis shows this has a 71% success probability in reducing tension below critical threshold.<br><br>
+          Shall I draft the full diplomatic brief?
+        </div>
+        <div class="confidence-bar">
+          <span class="conf-label">Confidence</span>
+          <div class="conf-track"><div class="conf-fill" style="width: 89%"></div></div>
+          <span class="conf-val">89%</span>
+        </div>
+        <div class="msg-meta">08:01:41 · 847ms · Game theory + 24 agent consensus</div>
+      </div>
+
+      <div class="msg user">
+        <div class="msg-bubble">What about the federal debt? Is it actually a crisis right now?</div>
+        <div class="msg-meta">08:03:12 · Operator</div>
+      </div>
+
+      <div class="msg ai">
+        <div class="ai-prefix"><div class="ai-prefix-dot"></div>ATHENA · FISCAL ANALYSIS</div>
+        <div class="msg-bubble">
+          Yes, but it's a slow-moving crisis, which makes it politically invisible — and that's precisely what makes it dangerous.<br><br>
+          The debt itself isn't the immediate problem. The <em>debt service cost</em> is. At current trajectory: by FY2029, the federal government will spend more on interest payments than on the entire defense budget. That structurally crowds out every other priority — education, healthcare, climate, infrastructure.<br><br>
+          Think of it as a termite infestation. The house looks fine until it doesn't.<br><br>
+          The window for gradual, non-disruptive correction is approximately 3–5 years. After that, the options become increasingly painful. I have a detailed 10-year fiscal stabilization plan ready — projected savings of $1.8T with minimal impact on social programs if implemented now. Want me to walk you through it?
+        </div>
+        <div class="confidence-bar">
+          <span class="conf-label">Confidence</span>
+          <div class="conf-track"><div class="conf-fill" style="width: 97%"></div></div>
+          <span class="conf-val">97%</span>
+        </div>
+        <div class="msg-meta">08:03:19 · CBO data · Treasury models · Fed Reserve · IMF</div>
+      </div>
+
+      <!-- Typing indicator -->
+      <div class="typing-indicator">
+        <div style="font-size: 10px; color: var(--teal); font-family: monospace;">ATHENA</div>
+        <div class="typing-dots">
+          <span></span><span></span><span></span>
+        </div>
+      </div>
+
+    </div>
+
+    <div class="chat-input-area">
+      <div class="chat-actions">
+        <button class="chat-action-btn">📊 Run simulation</button>
+        <button class="chat-action-btn">📋 Draft brief</button>
+        <button class="chat-action-btn">🔍 Deep analysis</button>
+        <button class="chat-action-btn">📅 Schedule action</button>
+      </div>
+      <div class="chat-input-wrap">
+        <textarea class="chat-input" placeholder="Ask ATHENA anything about government, policy, world affairs, or request a simulation..." rows="2"></textarea>
+        <button class="chat-send">↑</button>
+      </div>
+    </div>
+
+    <div class="agent-status">
+      <div class="agent-status-title">Agent Fleet Status</div>
+      <div class="agents-row">
+        <div class="agent-chip active"><div class="agent-status-dot"></div>EconAgent</div>
+        <div class="agent-chip active"><div class="agent-status-dot"></div>DefenseAgent</div>
+        <div class="agent-chip busy"><div class="agent-status-dot"></div>FP-Agent</div>
+        <div class="agent-chip active"><div class="agent-status-dot"></div>ClimateAgent</div>
+        <div class="agent-chip idle"><div class="agent-status-dot"></div>LegisAgent</div>
+        <div class="agent-chip busy"><div class="agent-status-dot"></div>SimEngine</div>
+        <div class="agent-chip active"><div class="agent-status-dot"></div>IntelAgent</div>
+        <div class="agent-chip idle"><div class="agent-status-dot"></div>HealthAgent</div>
+      </div>
+    </div>
+  </aside>
+
+</div>
+
+<script>
+  // Live time update
+  function updateTime() {
+    const now = new Date();
+    const h = String(now.getUTCHours()).padStart(2,'0');
+    const m = String(now.getUTCMinutes()).padStart(2,'0');
+    const s = String(now.getUTCSeconds()).padStart(2,'0');
+    const el = document.getElementById('live-time');
+    if (el) el.textContent = `${h}:${m}:${s} UTC`;
+  }
+  setInterval(updateTime, 1000);
+  updateTime();
+
+  // Animated particle background
+  const canvas = document.getElementById('bg-canvas');
+  const ctx = canvas.getContext('2d');
+  canvas.width = window.innerWidth;
+  canvas.height = window.innerHeight;
+  window.addEventListener('resize', () => {
+    canvas.width = window.innerWidth;
+    canvas.height = window.innerHeight;
+  });
+
+  const particles = Array.from({ length: 80 }, () => ({
+    x: Math.random() * canvas.width,
+    y: Math.random() * canvas.height,
+    vx: (Math.random() - 0.5) * 0.3,
+    vy: (Math.random() - 0.5) * 0.3,
+    r: Math.random() * 1.5 + 0.3,
+    alpha: Math.random() * 0.5 + 0.1,
+  }));
+
+  function drawParticles() {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+    // Draw connections
+    for (let i = 0; i < particles.length; i++) {
+      for (let j = i + 1; j < particles.length; j++) {
+        const dx = particles[i].x - particles[j].x;
+        const dy = particles[i].y - particles[j].y;
+        const dist = Math.sqrt(dx*dx + dy*dy);
+        if (dist < 120) {
+          ctx.beginPath();
+          ctx.moveTo(particles[i].x, particles[i].y);
+          ctx.lineTo(particles[j].x, particles[j].y);
+          ctx.strokeStyle = `rgba(0,212,170,${0.06 * (1 - dist/120)})`;
+          ctx.lineWidth = 0.5;
+          ctx.stroke();
+        }
+      }
+    }
+
+    // Draw particles
+    particles.forEach(p => {
+      p.x += p.vx;
+      p.y += p.vy;
+      if (p.x < 0 || p.x > canvas.width) p.vx *= -1;
+      if (p.y < 0 || p.y > canvas.height) p.vy *= -1;
+
+      ctx.beginPath();
+      ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
+      ctx.fillStyle = `rgba(0,212,170,${p.alpha})`;
+      ctx.fill();
+    });
+
+    requestAnimationFrame(drawParticles);
+  }
+  drawParticles();
+
+  // Nav items interactivity
+  document.querySelectorAll('.nav-item').forEach(item => {
+    item.addEventListener('click', function() {
+      document.querySelectorAll('.nav-item').forEach(i => i.classList.remove('active'));
+      this.classList.add('active');
+    });
+  });
+
+  // Icon buttons interactivity
+  document.querySelectorAll('.icon-btn').forEach(btn => {
+    btn.addEventListener('click', function() {
+      document.querySelectorAll('.icon-btn').forEach(b => b.classList.remove('active'));
+      this.classList.add('active');
+    });
+  });
+
+  // Chat mode buttons
+  document.querySelectorAll('.chat-mode-btn').forEach(btn => {
+    btn.addEventListener('click', function() {
+      document.querySelectorAll('.chat-mode-btn').forEach(b => b.classList.remove('active'));
+      this.classList.add('active');
+    });
+  });
+
+  // Scroll chat to bottom
+  const chatMessages = document.getElementById('chat-messages');
+  if (chatMessages) chatMessages.scrollTop = chatMessages.scrollHeight;
+</script>
+</body>
+</html>
