@@ -92,25 +92,40 @@ Every ATHENA interface is built around a single principle: **decision support at
 **Layout:** Filterable list (left 40%) + full advisory (right 60%)
 
 **List panel:**
-- Sort by: Urgency / Date / Domain / Confidence
-- Filter: Domain / Urgency threshold / Status (open/acted/dismissed)
-- Each row: urgency badge (color), title, domain icon, date, Red ATHENA indicator, confidence %
+- Sort by: Urgency / Date / Domain / Confidence / Complexity Class / Worldview Consensus
+- Filter: Domain / Urgency threshold / Status / Complexity class / Prediction market divergence flag
+- Each row: urgency badge, complexity class indicator (1–4), title, domain icon, date, Red ATHENA status, worldview panel verdict (✓/≈/✗ icons for all 4)
 - Keyboard shortcut (↑↓) to navigate, Enter to open
 
-**Full Advisory Panel:**
-- Header: Title, domain, urgency (1–10), confidence (0–100%), date issued
-- **Situation Summary** — 2–4 sentences describing the problem/opportunity
-- **Evidence Base** — bullet list of supporting data points with source citations and confidence weights
-- **Recommendation** — the specific action ATHENA advises
-- **Implementation Steps** — ordered list of concrete steps
-- **CHI Impact Projection** — which CHI dimensions affected, by how much, over what time horizon
-- **Simulation Result** (if run) — probability distribution of outcomes, collapsible chart
-- **Red ATHENA Debate** (if triggered) — expandable transcript of the adversarial challenge + ATHENA's response + confidence adjustment
-- **Dissenting Agent Views** — any agents that voted against this recommendation, with their reasoning
-- **Historical Precedents** — 2–3 comparable historical situations with outcomes
-- **Risk Factors** — what could make this recommendation wrong
-- **Confidence Decomposition** — where the uncertainty comes from (data quality, model uncertainty, political uncertainty)
-- Action bar: Accept → Export to brief / Dismiss → Log with reason / Flag → Send to oversight API
+**Full Advisory Panel (v4 format — see advisory-format-v4.md for complete spec):**
+
+*Fixed header (always visible):* Classification header with urgency, complexity class, Red ATHENA status, extended thinking indicator, worldview panel summary
+
+*Scrollable body (15 sections):*
+1. **Situation** — what's happening and why it matters now
+2. **Recommendation** — 1–3 sentences, the specific action and rationale
+3. **Implementation Score** — 0–100 with 4-dimension breakdown
+4. **CHI Impact** — all 6 dimensions × 3 time horizons + causal graph cross-domain effects
+5. **Complexity Classification** — Class 1–4 with appropriate output format:
+   - Class 1–2: probability distribution histogram
+   - Class 3: scenario fan (3 qualitative futures with early-indicator signals)
+   - Class 4: threshold analysis
+6. **Regime Analysis** — top-3 historical analogues with structural similarity scores and lessons
+7. **Load-Bearing Assumptions** — interactive panel:
+   - Each assumption shown with: statement, ATHENA confidence (%), sensitivity level, evidence basis, prediction market comparison (if available)
+   - Confidence slider: drag to your own estimate → advisory recomputes via streaming
+   - "Assume false" toggle → advisory recomputes instantly
+   - Assumptions ranked: most critical + uncertain at top
+8. **Chesterton's Fence** (displacement advisories only) — why current policy exists, who depends on it, what failure it addressed
+9. **Second-Order Response Model** — how primary affected actors will respond; robustness rating
+10. **Worldview Panel** — 4 lenses with verdict, core concern, and value assumption at stake
+11. **Evidence Base** — source count, quality distribution (Tier A/B/C), key sources, recency
+12. **Prediction Market Benchmark** — Metaculus/Polymarket comparisons with delta flags
+13. **Red ATHENA Debate** — summary with pre/post confidence delta; link to full transcript + extended thinking traces
+14. **Narrative Intelligence** — dominant public mental model, accuracy assessment, narrative-policy gap
+15. **Feedback Record** — outcome metrics being tracked, counterfactual baseline established, current status at each horizon
+
+**Action bar:** Accept → Export to brief / Dismiss → Log with reason / Escalate → Presidential briefing / Flag → Congressional oversight API / Share → Cleared recipient
 
 ---
 
@@ -403,31 +418,40 @@ Every ATHENA interface is built around a single principle: **decision support at
 
 ### Tab 12: Red ATHENA Debates
 
-**Purpose:** Full archive of adversarial self-challenge transcripts.
+**Purpose:** Full archive of adversarial debates — the most important transparency surface in ATHENA.
 
-**Layout:** Debate list (left 35%) + full transcript (right 65%)
+**Layout:** Debate list (left 35%) + full transcript + thinking traces (right 65%)
 
 **Debate List:**
-- Every advisory that triggered Red ATHENA (urgency ≥7)
-- Sorted by: date / urgency / confidence shift / debate intensity
-- Each row: advisory title, date, pre-debate confidence, post-debate confidence, outcome (advisory upheld / modified / withdrawn)
+- Every advisory that triggered Red ATHENA (urgency ≥7) — shown as two-model debate (ATHENA-Prime vs. Red ATHENA/Gemini)
+- Sorted by: date / urgency / confidence shift / debate intensity / number of rounds
+- Each row: advisory title, date, primary model + Red ATHENA model used, pre/post confidence, outcome, rounds count
 
-**Full Debate Transcript:**
-- Primary ATHENA's initial recommendation (full text)
-- Red ATHENA's opening challenge (strongest possible counter-argument)
-- Primary ATHENA's response + revisions
-- Red ATHENA's second challenge (after initial response)
-- Primary ATHENA's final position
-- Constitutional Oversight Agent's review
+**Full Debate Transcript (v4 — interleaved thinking):**
+- Debate format: multi-round adversarial exchange with full extended thinking traces for both sides
+- Round structure:
+  - ATHENA-Prime: initial advisory + extended thinking trace (12–32K tokens, depending on urgency)
+  - Red ATHENA (Gemini 1.5 Pro): challenge targeting weakest reasoning links + Gemini's own thinking trace
+  - ATHENA-Prime: response + revised reasoning + updated confidence
+  - Red ATHENA: second challenge or concession
+  - (Up to 3 rounds; stops when confidence delta <5%)
+- **Extended thinking pane (toggle):** collapsible side panel showing the raw thinking trace for each turn. Decision-makers can see not just what each model concluded but the step-by-step reasoning that led there.
+- Constitutional Oversight Agent's final review
 - Final confidence score + delta from pre-debate
-- "Argument strength" scores for both sides (MetaCog Agent assessment)
-- Lessons logged to skill library
 
-**Analytics Panel:**
-- What % of urgency ≥7 advisories are modified by Red ATHENA?
-- Average confidence adjustment
-- Most common categories of challenge (hidden assumptions / precedent failure / constitutional concern / data quality)
-- Top 10 most intense debates (ranked by revision magnitude)
+**Thinking Trace Viewer:**
+- Toggle: Show/hide extended thinking for ATHENA-Prime
+- Toggle: Show/hide extended thinking for Red ATHENA (Gemini)
+- Diff view: highlights the specific reasoning steps that changed between draft and final advisory
+- "What changed and why" — ATHENA-Prime auto-generates a 3-sentence summary of how the debate affected the final advisory
+
+**Analytics Panel (v4):**
+- Win/modify/withdraw rates by domain
+- Average confidence adjustment by domain
+- Challenge category breakdown: hidden assumptions / Chesterton's Fence / second-order effects / worldview / data quality
+- Prediction market divergence correlation: do high-divergence advisories get more heavily challenged?
+- Top 10 most intense debates (ranked by revision magnitude + rounds)
+- Trend: is Red ATHENA's challenge rate improving over time? (indicator of ATHENA-Prime's improving self-consistency)
 
 ---
 

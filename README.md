@@ -8,7 +8,7 @@ ATHENA is a concept design for the world's first **self-evolving, values-aligned
 
 ## What This Is
 
-This repository contains the complete design specification, architecture documents, interactive mockups, and working Thinklet prototype for ATHENA v3 — the rationalized design that can actually be built, deployed, and trusted.
+This repository contains the complete design specification, architecture documents, interactive mockups, and working Thinklet prototype for ATHENA v4 — a superintelligence layer built on the rationalized v3 foundation.
 
 This is not a chatbot. It is not a dashboard. It is the blueprint for a **living intelligence** that:
 
@@ -28,7 +28,7 @@ Every major governance failure in history traces to the same root causes: inform
 
 No existing system does this. Palantir is a military data telescope. DOGE's AI optimizes for budget cuts. The UAE Cabinet AI (the world's closest real parallel) is advisory but unpublished in architecture. None have MetaClaw-style self-evolution, adversarial self-challenge, or an explicit human flourishing objective function.
 
-**ATHENA v2 is designed to get measurably smarter every single day it operates** — compounding governance intelligence in a way no human institution can.
+**ATHENA v4 is designed to get measurably smarter every day it operates** — and to know, with increasing precision, exactly what it doesn't know.
 
 ---
 
@@ -42,7 +42,9 @@ athena-gov/
 ├── docs/
 │   ├── architecture-v1.md             ← v1 system design (10-layer architecture)
 │   ├── architecture-v2.md             ← v2 full spec (MetaClaw, AutoResearch, Red ATHENA, CHI)
-│   ├── architecture-v3.md             ← v3 rationalized design (corrected agents, simulation, CHI, legal)
+│   ├── architecture-v3.md             ← v3 rationalized design (11 agents, calibrated CHI, legal framework)
+│   ├── architecture-v4.md             ← v4 superintelligence layer (causal graph, regime detection, worldview panel, epistemic infrastructure)
+│   ├── advisory-format-v4.md         ← Complete spec for every advisory section (15 sections)
 │   ├── build-blueprint.md             ← Complete UX/UI spec for every tab + technical stack
 │   └── research-landscape.md         ← Survey of comparable systems (Palantir, UAE, DOGE, Estonia)
 │
@@ -216,18 +218,27 @@ This design draws on the following real systems and published research:
 
 ## Comparative Analysis
 
-| Capability | ATHENA v3 | Palantir | UAE Cabinet AI | DOGE |
+| Capability | ATHENA v4 | Palantir | UAE Cabinet AI | DOGE |
 |------------|-----------|---------|----------------|------|
 | Multi-domain synthesis | ✅ | ❌ | ❓ | ❌ |
 | Self-evolution (MetaClaw, days not years) | ✅ | ❌ | ❓ | ❌ |
-| Cross-model adversarial challenge | ✅ (Gemini/GPT) | ❌ | ❓ | ❌ |
-| Calibrated CHI (12 real data sources) | ✅ | ❌ | ❓ | ❌ |
-| Autonomous research pipeline | ✅ | ❌ | ❓ | ❌ |
+| Cross-model adversarial challenge (Gemini/GPT) | ✅ | ❌ | ❓ | ❌ |
+| Multi-worldview panel (4 ideological lenses) | ✅ | ❌ | ❌ | ❌ |
+| Prediction market calibration (Metaculus/Polymarket) | ✅ | ❌ | ❌ | ❌ |
+| Cross-domain causal graph (multi-hop consequences) | ✅ | ❌ | ❓ | ❌ |
+| Regime detection (historical structural similarity) | ✅ | ❌ | ❓ | ❌ |
+| Complexity classification (scenario fans for Class 3) | ✅ | ❌ | ❓ | ❌ |
+| Assumption surfacing (interactive, live-updating) | ✅ | ❌ | ❌ | ❌ |
+| Second-order response modeling | ✅ | ❌ | ❓ | ❌ |
+| Chesterton's Fence protocol | ✅ | ❌ | ❌ | ❌ |
+| Narrative intelligence layer | ✅ | ❌ | ❓ | ❌ |
+| Multi-horizon feedback (1/5/10/20yr + counterfactual) | ✅ | ❌ | ❓ | ❌ |
+| Extended thinking (mandatory urgency ≥7, 32K tokens) | ✅ | ❌ | ❓ | ❌ |
+| Calibrated CHI (12 real data sources, distributional) | ✅ | ❌ | ❓ | ❌ |
 | Implementation feasibility scoring | ✅ | ❌ | ❓ | ❌ |
-| Values framework (hardcoded, LoRA-proof) | ✅ | ❌ | ❓ | ❌ |
 | Full audit trail + congressional oversight API | ✅ | ❌ | ❓ | ❌ |
 | Legal framework (Presidential Records compliant) | ✅ | ❌ | ❓ | ❌ |
-| Real government data APIs (FRED, Congress.gov) | ✅ | ✅ | ❓ | ❌ |
+| Real government data APIs (FRED, Congress.gov, GDELT) | ✅ | ✅ | ❓ | ❌ |
 
 ---
 
