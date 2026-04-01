@@ -44,17 +44,19 @@ athena-gov/
 ├── README.md
 │
 ├── docs/
-│   ├── architecture-v4.md         ← Full system architecture
-│   ├── advisory-format-v4.md      ← Complete 15-section advisory specification
-│   ├── build-blueprint.md         ← UX/UI spec for all 19 desktop tabs
-│   └── research-landscape.md      ← Competitive analysis (Palantir, UAE, DOGE, Estonia)
+│   ├── architecture-v4.md            ← Full system architecture (current)
+│   ├── architecture-v3.md            ← Rationalized foundation architecture
+│   ├── advisory-format-v4.md         ← Complete 15-section advisory specification
+│   ├── build-blueprint.md            ← UX/UI spec for all 19 desktop tabs
+│   ├── research-landscape.md         ← Competitive analysis (Palantir, UAE, DOGE, Estonia)
+│   └── citizen-interface-mockup.html ← iPhone app mockup (open in browser)
 │
 ├── mockups/
-│   ├── desktop-v1.html            ← Interactive desktop mockup (open in browser)
-│   └── desktop-v2.html            ← Interactive desktop mockup with full intelligence layer
+│   ├── desktop-v1.html               ← Interactive desktop mockup (open in browser)
+│   └── desktop-v2.html               ← Interactive desktop mockup with full intelligence layer
 │
 ├── thinklet/
-│   └── athena-thinklet.jsx        ← Working Thinklet prototype (deploy to Thinklet platform)
+│   └── athena-thinklet.jsx           ← Working Thinklet prototype (deploy to Thinklet platform)
 │
 └── assets/
 ```
@@ -191,7 +193,7 @@ Full UX/UI specification: [`docs/build-blueprint.md`](docs/build-blueprint.md)
 10. MetaClaw Evolution Engine — Skill library browser, LoRA status, calibration charts
 11. Research Observatory — 17-stage autonomous research pipeline, live and archive
 12. Red ATHENA Debates — Full adversarial transcripts with extended thinking traces
-13. Diplomatic Simulation Theater — Game-theoretic negotiation wargaming
+13. Diplomatic Wargaming — Game-theoretic actor-vs-actor negotiation modeling (distinct from Tab 9's system simulation)
 14. Legislative Drafting Workshop — AI-assisted bill drafting with constitutional annotation
 15. Civilizational Memory — Episodic, semantic, and procedural memory browser
 16. Knowledge Graph — Interactive graph visualization with SPARQL query panel
@@ -243,7 +245,7 @@ Full UX/UI specification: [`docs/build-blueprint.md`](docs/build-blueprint.md)
 | System | Contribution |
 |--------|-------------|
 | [MetaClaw](https://arxiv.org/abs/2603.17187) — AIMING Lab, UNC-Chapel Hill | Self-evolution engine: M=(θ,S), fast skill synthesis + slow LoRA |
-| [AutoResearchClaw](https://github.com/aiming-lab/AutoResearchClaw) | 23-stage autonomous research pipeline |
+| [AutoResearchClaw](https://github.com/aiming-lab/AutoResearchClaw) | Autonomous research pipeline framework; ATHENA adapts this into its own 17-stage implementation |
 | [Sakana AI Scientist v2](https://github.com/SakanaAI/AI-Scientist-v2) | First AI-generated paper to pass human peer review |
 | [OpenClaw](https://openclaw.io) | Autonomous background agent framework (250k+ GitHub stars) |
 | [Anthropic Agent SDK](https://docs.anthropic.com) | Multi-agent orchestration |

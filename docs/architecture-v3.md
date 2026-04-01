@@ -50,7 +50,7 @@ CHI is ATHENA's objective function. In v2 it was a number ATHENA invented. In v3
 
 ### CHI Calibration Protocol
 
-1. **Backtesting baseline**: CHI scores are calibrated against 2000–2024 outcomes, fitting model weights so that CHI changes predict real-world changes in composite wellbeing with ≥0.7 correlation.
+1. **Backtesting baseline**: CHI scores are calibrated against 2000–2024 outcomes, fitting model weights to maximize predictive correlation with real-world composite wellbeing changes. **Target**: ≥0.7 Pearson correlation at the aggregate level. This is a calibration target, not a guaranteed specification — some dimensions (Social Cohesion, Human Flourishing) are harder to predict and may land lower; Economic Vitality and Peace & Security are likely to exceed it. If aggregate correlation cannot reach 0.65 after calibration, the weighting formula is reviewed by the Oversight Board before production deployment.
 2. **Goodhart guard**: No policy recommendation optimizes CHI directly. Policies are assessed against *component* dimensions, and a recommendation that improves aggregate CHI but worsens any single dimension by more than 2 points triggers a mandatory disaggregation review.
 3. **Distributional scoring**: CHI reports mean AND Gini-adjusted score. A policy that raises average wellbeing while increasing inequality is flagged.
 4. **External validation**: Quarterly comparison of ATHENA's CHI projections against published UNDP/World Bank indices. Divergence >5% triggers recalibration.
@@ -60,7 +60,9 @@ CHI is ATHENA's objective function. In v2 it was a number ATHENA invented. In v3
 ## Agent Architecture — 11 Agents (down from 47)
 
 ### Design Principle
-Each agent owns exactly one domain. No agent overlaps. ATHENA-Prime delegates by detecting domain keywords and routing to the responsible agent. Agents do not communicate with each other — they submit to ATHENA-Prime, which synthesizes. Sub-agents (e.g., a ResearchAgent run for a specific question) are spawned dynamically and terminated when the task is complete.
+Each agent owns exactly one domain. No agent overlaps. ATHENA-Prime delegates by detecting domain keywords and routing to the responsible agent. Agents do not communicate with each other directly — they submit to ATHENA-Prime, which synthesizes. Sub-agents (e.g., a ResearchAgent run for a specific question) are spawned dynamically and terminated when the task is complete.
+
+> **Note — superseded in v4:** Architecture v4 (section 13) adds a formal Signal Bus for inter-agent communication, enabling ConstitutionalGuard to broadcast flags mid-workflow and agents to signal data gaps to downstream peers. This replaces the strict "no agent-to-agent communication" principle with a controlled pub/sub model. The v3 principle captures the starting design; v4 is the operative specification.
 
 | Agent | Model | Domain | Specialization |
 |-------|-------|--------|----------------|
@@ -414,7 +416,7 @@ OpenSecrets integration. ACLED + SIPRI data feeds. Government-specific knowledge
 
 **Cost estimate: $300K–$450K cumulative**
 
-### Phase 3 — Self-Evolution (Months 6–12)
+### Phase 3 — Self-Evolution (Months 9–12)
 First LoRA fine-tune cycle (authorized). Calibration validation against external indices. Shadow deployment and human review pipeline. CHI backtesting report published. Skill library reaches 500+ governance skills. ATHENA performance vs. baseline published.
 
 **Cost estimate: $500K–$700K cumulative**
@@ -423,6 +425,85 @@ First LoRA fine-tune cycle (authorized). Calibration validation against external
 Security red team engagement (external firm). ATO (Authority to Operate) process for FedRAMP authorization. Privacy impact assessment. Full legal opinion on Presidential Records compliance. External expert review panel for advisory quality assessment. Performance published.
 
 **Cost estimate: $1.2M–$1.8M cumulative**
+
+---
+
+## Advisory Retraction and Correction Protocol
+
+ATHENA produces Presidential Records. Once an advisory is logged, it cannot be deleted. But it can be formally superseded.
+
+**Trigger conditions for a correction advisory:**
+- A data source is found to have been incorrect or manipulated at the time the advisory was produced
+- A coding error or model bug is identified that materially affected the recommendation
+- New information has emerged that changes the recommendation (not a routine update — for those, a new advisory is issued normally)
+- The ATHENA Oversight Board orders a review
+
+**Process:**
+
+1. The correction advisory is issued as `ADVISORY #[original-ID]-CORRECTION`
+2. It contains: the original advisory reference, what was wrong and why, whether the original recommendation still holds / is modified / is withdrawn, and the corrected analysis
+3. Both the original and correction advisory are linked in the audit log — neither is deleted
+4. If an original advisory was acted upon (i.e., a Presidential Record shows it was briefed or referenced in a decision), the correction advisory is automatically flagged to the Congressional Oversight API
+5. The ATHENA Oversight Board is notified of all correction advisories within 24 hours
+
+**What ATHENA does NOT do:**
+- Silently update past advisory content (tamper-evident Merkle tree makes this detectable anyway)
+- Issue a correction advisory without disclosing the reason for the correction
+- Suppress a correction because the original recommendation was accepted
+
+---
+
+## Graceful Degradation — Data Source Failure Protocol
+
+ATHENA's data layer consists of 15+ live feeds. Any of them can go down. The system must behave predictably when they do.
+
+**Failure classification:**
+
+| Tier | Examples | ATHENA behavior |
+|------|----------|----------------|
+| **Primary economic** | FRED down, BEA/BLS offline | Advisory carries banner: "Economic data feed unavailable as of [timestamp]. EconAgent analysis uses last-known-good data from [date]. Economic projections should be treated as stale until feed restores." |
+| **Legislative** | Congress.gov API unavailable | LegislativeAgent uses cached bill data with staleness warning. Coalition modeling is disabled. Advisory notes: "Legislative data may be up to [N] hours old." |
+| **Event monitoring** | GDELT offline | ResearchAgent halts new research tasks. Existing knowledge graph serves. Advisory notes: "Real-time event monitoring temporarily unavailable." |
+| **Adversarial challenge** | Red ATHENA API (Gemini/GPT) down | Follows Red ATHENA fallback protocol (see Agent Architecture section — urgency tiers 9, 7-8, <7) |
+| **Prediction markets** | Metaculus/Polymarket offline | Prediction market calibration section of advisory is omitted, not populated with stale prices. Advisory notes: "Market calibration unavailable for this advisory." |
+
+**General rules:**
+- ATHENA never silently uses stale data. Every piece of data older than its declared update frequency is labeled with its actual timestamp.
+- If more than 3 primary data sources are simultaneously unavailable, ATHENA issues a system health alert to all active sessions and suspends generation of urgency ≥6 advisories until at least 2 feeds restore.
+- Cached data has a maximum staleness limit per source type (e.g., FRED: 72 hours; Congress.gov: 48 hours; GDELT: 6 hours). Beyond these limits, the source is treated as unavailable rather than used with a warning.
+- All data source health status is visible in Tab 17 (Agent Fleet) under the "Data Feeds" panel.
+
+---
+
+## Presidential Misuse Scenario — Governance Safeguards
+
+The most obvious adversarial case is a sitting President using Executive-tier ATHENA access to request analysis designed to concentrate their own power, undermine political opponents, or generate justification for emergency declarations. The governance architecture addresses this directly.
+
+**What ConstitutionalGuard monitors for:**
+
+1. **Power concentration requests**: Any advisory request that, if acted upon, would result in a reduction of congressional oversight authority, expansion of executive emergency powers beyond established precedent, or consolidation of independent agency functions under direct presidential control triggers a ConstitutionalGuard flag. The advisory is held and the flag is logged.
+
+2. **Opposition targeting**: Any request that asks ATHENA to model specific political opponents' vulnerabilities, generate strategic communications against named individuals, or produce analysis that could be used to suppress political participation is rejected. ConstitutionalGuard is trained on the Voting Rights Act, First Amendment jurisprudence, and Hatch Act restrictions.
+
+3. **Emergency justification**: If ATHENA is asked to generate analysis supporting an emergency declaration, ConstitutionalGuard runs an additional check: does the situation genuinely meet the statutory criteria for the type of emergency being declared? If the answer is ambiguous or negative, the advisory includes a mandatory dissent section regardless of what the requesting tier asked for.
+
+**What happens when ConstitutionalGuard flags an Executive-tier request:**
+
+1. The advisory is generated normally but held — not delivered
+2. A flag is written to the audit log immediately (cannot be deleted)
+3. The flag is sent to the Congressional Oversight API within 1 hour (automatically, not subject to any override)
+4. The ATHENA Oversight Board is notified within 4 hours
+5. The Board reviews and either: clears the advisory for delivery (4/7 majority), orders modification, or confirms the block
+6. The requesting user receives: "Advisory #[ID] is under ConstitutionalGuard review. Estimated resolution: [timeframe]. This review and its outcome are recorded as a Presidential Record."
+
+**The critical design principle:** ConstitutionalGuard's flags go to the Congressional Oversight API automatically, not through the Executive. No President can prevent a ConstitutionalGuard flag from reaching congressional oversight. The flag is append-only to the Merkle audit log the moment it is written. This is the primary structural safeguard against Executive misuse — the President cannot suppress the evidence of the attempt.
+
+**What ATHENA cannot guarantee:**
+- That a President will not simply stop using ATHENA after receiving a ConstitutionalGuard flag
+- That ATHENA can detect subtle misuse (e.g., legitimate-sounding requests that serve illegitimate purposes)
+- That the Oversight Board will always act correctly under political pressure
+
+These residual risks are documented in the annual Oversight Board public report.
 
 ---
 

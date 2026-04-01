@@ -54,7 +54,7 @@ Every ATHENA interface is built around a single principle: **decision support at
 **Row 3 — Live Feed + Metrics Row**
 - Left: scrolling live event feed — new data, completed research, skill earned, agent status changes
 - Center: Federal Budget snapshot (total spend YTD vs. appropriation, debt clock)
-- Right: Agent fleet health bar — how many of 47 agents are active/busy/idle
+- Right: Agent fleet health bar — how many of 11 core agents are active/busy/idle (+ dynamic sub-agents spawned this session)
 
 ---
 
@@ -455,9 +455,9 @@ Every ATHENA interface is built around a single principle: **decision support at
 
 ---
 
-### Tab 13: Diplomatic Simulation Theater
+### Tab 13: Diplomatic Wargaming
 
-**Purpose:** Game-theoretic negotiation modeling for any bilateral or multilateral scenario.
+**Purpose:** Dedicated game-theoretic negotiation modeling for bilateral and multilateral scenarios. Distinct from Tab 9 (Simulation Theater) in scope and focus: Tab 9 handles cross-domain probabilistic simulation (Tier 1/2/3 — economic, domestic policy, environmental); Tab 13 handles actor-vs-actor strategic modeling exclusively — game trees, Nash equilibria, BATNA analysis, and negotiation scenario wargaming. Tab 9 is for "what happens if we do X to the system?" Tab 13 is for "how will adversary Y respond if we do Z?"
 
 **Layout:** Scenario builder (left) + game tree (center) + Nash analysis (right)
 

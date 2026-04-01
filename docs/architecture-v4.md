@@ -436,7 +436,8 @@ Political feasibility isn't just about Congressional math — it's about what th
 - Google Trends API — what are people actually searching for on policy topics?
 - Pew Research Center API — published survey data on public mental models and beliefs
 - Reddit API (r/politics, r/economics, policy-specific subreddits) — leading indicators of narrative shifts
-- Twitter/X firehose (academic access) — narrative spread velocity
+- Bluesky/AT Protocol firehose (public, free) — real-time narrative spread and emerging discourse signals
+- Reddit API (r/politics, r/economics, policy-specific subreddits) — narrative shift leading indicators (note: Twitter/X academic API was discontinued in 2023; X data is no longer accessible at research scale)
 
 **What the Narrative Engine tracks per policy domain:**
 
@@ -500,6 +501,18 @@ For every major advisory (urgency ≥7), ATHENA maintains a **synthetic counterf
 Methodology: Synthetic Control Method (Abadie, Diamond, Hainmueller 2010). ATHENA identifies a set of comparable jurisdictions or time periods that did *not* implement the policy and constructs a weighted synthetic "control case." At each feedback horizon, actual outcomes are compared against this synthetic control.
 
 This is hard to do perfectly — but doing it imperfectly is still vastly better than not doing it. Every outcome comparison carries a confidence interval on the counterfactual.
+
+**Methodological limitation — when synthetic control doesn't apply:**
+
+The synthetic control method was designed for sub-national policy interventions where comparable control units exist (e.g., California smoking ban vs. similar states). For many national US policies, no comparable control unit exists — there is no "control country" for a US debt ceiling deal, a federal minimum wage increase, or NATO expansion.
+
+When synthetic control is not applicable, ATHENA falls back in order:
+1. **Interrupted time series** — compare outcomes before and after the policy change against a pre-treatment trend projection (applicable when the policy has a clear implementation date and pre-treatment data exists)
+2. **Difference-in-differences** — compare treated US states/regions against untreated states where the policy was not implemented at the federal level (applicable for policies with state-level variation)
+3. **Expert counterfactual elicitation** — structured expert judgment on what would have happened, with explicit uncertainty bounds and a list of the expert panel
+4. **No counterfactual** — when none of the above applies, the feedback record notes: "Counterfactual not estimable for this policy. Outcome tracking continues but LoRA reward signal for this advisory is set to zero." ATHENA does not invent a counterfactual when it cannot construct one honestly.
+
+The fallback method used is always disclosed in the Feedback Record section of the advisory.
 
 **Reward Signal for LoRA:**
 
