@@ -24,6 +24,7 @@
 | Complexity Classification System | Epistemics | Classifies every advisory situation on a complexity spectrum; replaces point estimates with scenario fans for complex adaptive systems |
 | Extended Thinking Mandatory (urgency ≥7) | Anthropic-Native | Forces full Claude extended thinking on high-stakes advisories; reasoning trace stored in audit log |
 | Interleaved Thinking Debates | Anthropic-Native | ATHENA-Prime / Red ATHENA debate uses interleaved thinking for authentic real-time adversarial exchange |
+| Multi-Agent Orchestration Engine | Core Infrastructure | Formal coordinator pattern, dependency-aware task DAG, four scheduling strategies, inter-agent signal bus, namespaced working memory, semaphore concurrency control, cascade failure handling |
 
 ---
 
@@ -649,6 +650,250 @@ Summary of new sections added to every advisory:
 8. Narrative-policy gap assessment
 9. Multi-horizon feedback record (created at delivery)
 10. Extended thinking availability notice
+
+---
+
+## 13. Multi-Agent Orchestration Engine
+
+### The Problem It Solves
+
+ATHENA has 11 specialized agents. In v3, routing was implicit — ATHENA-Prime delegates to domain agents via the Anthropic Agent SDK, but there's no formal model of what happens when an advisory requires sequential work (EconAgent must complete its analysis before LegislativeAgent can score implementability), parallel work (all four worldview agents run simultaneously), or failure handling (if DefenseAgent errors, what happens to the downstream advisory synthesis?). Without an explicit orchestration layer, complex advisories are fragile.
+
+This section specifies the orchestration engine that governs how ATHENA's agents coordinate: how tasks are decomposed, scheduled, executed, and how intermediate results are shared.
+
+---
+
+### Architecture Overview
+
+The orchestration engine has five components:
+
+```
+┌──────────────────────────────────────────────────────────────────┐
+│                     ORCHESTRATION ENGINE                         │
+│                                                                  │
+│  ┌─────────────────┐   ┌─────────────────┐   ┌───────────────┐  │
+│  │  Task Coordinator│   │  Task DAG Queue │   │   Scheduler   │  │
+│  │  (ATHENA-Prime) │──▶│  (dep-aware)    │──▶│  (4 strategies│  │
+│  └─────────────────┘   └─────────────────┘   └───────────────┘  │
+│                                                        │         │
+│  ┌─────────────────┐   ┌─────────────────┐            │         │
+│  │  Agent Pool     │◀──│  Agent Signal   │◀───────────┘         │
+│  │  (Semaphore: 5) │   │  Bus (pub/sub)  │                      │
+│  └─────────────────┘   └─────────────────┘                      │
+│          │                                                       │
+│  ┌─────────────────┐                                            │
+│  │  Working Memory │  (namespaced per agent, readable by all)   │
+│  └─────────────────┘                                            │
+└──────────────────────────────────────────────────────────────────┘
+```
+
+---
+
+### Component 1: Task Coordinator (LLM-Driven Decomposition)
+
+When ATHENA-Prime receives an advisory request, the first step is decomposition — not execution.
+
+**Decomposition prompt**: ATHENA-Prime receives the advisory request plus the agent roster (names, roles, capabilities). It generates a JSON task specification:
+
+```json
+[
+  {
+    "title": "Economic impact modeling",
+    "description": "Model the macroeconomic effects of the proposed tariff schedule using FRED and BEA data",
+    "agent": "EconAgent",
+    "dependsOn": []
+  },
+  {
+    "title": "Defense posture assessment",
+    "description": "Assess how the tariff targets interact with current defense supply chain dependencies",
+    "agent": "DefenseAgent",
+    "dependsOn": []
+  },
+  {
+    "title": "Legislative feasibility scoring",
+    "description": "Score implementation path given current Senate composition and reconciliation rules",
+    "agent": "LegislativeAgent",
+    "dependsOn": ["Economic impact modeling"]
+  },
+  {
+    "title": "Adversarial challenge",
+    "description": "Red ATHENA full challenge of the synthesis",
+    "agent": "Red-ATHENA",
+    "dependsOn": ["Economic impact modeling", "Defense posture assessment", "Legislative feasibility scoring"]
+  },
+  {
+    "title": "Final synthesis",
+    "description": "Integrate all domain findings into a structured advisory with CHI impact scores",
+    "agent": "ATHENA-Prime",
+    "dependsOn": ["Adversarial challenge"]
+  }
+]
+```
+
+**Dependency resolution**: Title-based `dependsOn` references are resolved to task IDs in a second pass. This produces a directed acyclic graph (DAG). Cycles are rejected with an error — ATHENA-Prime must revise.
+
+**Why LLM-driven**: Manual task graph construction for 11 agents across hundreds of advisory types is unscalable. ATHENA-Prime knows its own agent roster and can reason about which agents need others' outputs before they can proceed.
+
+---
+
+### Component 2: Task DAG Queue
+
+The Task DAG Queue manages task lifecycle with dependency-aware state transitions.
+
+**Task states:**
+
+```
+pending → in_progress → completed
+pending → blocked (if any dependency is incomplete)
+blocked → pending (when all dependencies complete)
+any_state → failed
+failed → cascade_failed (all transitive dependents)
+```
+
+**State transition rules:**
+- A task starts as `pending` if it has zero dependencies, or `blocked` if any dependencies are incomplete
+- `pending` tasks become `in_progress` when the scheduler assigns them to an agent pool slot
+- When a task completes, the queue scans all `blocked` tasks and re-evaluates whether their dependencies are now satisfied — if so, transition to `pending`
+- **Cascade failure**: When a task enters `failed`, all transitive dependents (direct and indirect) are immediately marked `cascade_failed` with the message `"Cancelled: dependency [title] failed"`. This prevents indefinite blocking.
+
+**What is NOT in the queue:**
+- Completed task results (stored in Working Memory)
+- Agent state (managed by Agent Pool)
+- Scheduling assignments (managed by Scheduler)
+
+---
+
+### Component 3: Scheduler — Four Strategies
+
+The Scheduler receives the current set of `pending` tasks and the available agents, and returns an assignment map: `Map<taskId, agentName>`. It is stateless except for round-robin cursor tracking.
+
+**Strategy 1: Dependency-First (default)**
+
+Prioritize tasks that unblock the most downstream work. `countBlockedDependents(task)` computes how many tasks are in `blocked` state with a transitive dependency on this task. Tasks are sorted by descending blocked-dependent count. This minimizes total wall-clock execution time by clearing bottlenecks first.
+
+Use this for: all standard advisory workflows.
+
+**Strategy 2: Capability-Match**
+
+Extract keywords from each task's title + description. Score overlap with each agent's declared capabilities. Assign the highest-scoring agent. Fallback to round-robin if all scores are zero.
+
+This strategy is most useful when ATHENA-Prime has under-specified the agent assignment in the decomposition step, or when a task spans multiple domains.
+
+Use this for: exploratory research tasks where the right agent is ambiguous.
+
+**Strategy 3: Least-Busy**
+
+Assign each pending task to the agent with the fewest currently in-progress tasks. Simple load balancing.
+
+Use this for: large batches of independent parallel tasks (e.g., running the 4-worldview panel simultaneously).
+
+**Strategy 4: Round-Robin**
+
+Distribute tasks across agents in order. Cursor maintained across calls.
+
+Use this for: homogeneous tasks where agent specialization doesn't matter (e.g., parallel data retrieval tasks assigned to ResearchAgent instances).
+
+---
+
+### Component 4: Agent Pool with Concurrency Control
+
+The Agent Pool wraps the 11-agent roster with a `Semaphore(maxConcurrent: 5)`. No more than 5 agent tasks run simultaneously, regardless of how many pending tasks are ready.
+
+**Why 5**: At ~3,000 tokens per task average with 128K context windows, 5 concurrent Sonnet/Opus calls is the empirical ceiling before latency degrades and API rate limits are hit. Configurable via environment variable.
+
+**Pool behavior:**
+- `pool.run(agentName, taskPrompt)` claims a semaphore slot, executes the agent, releases the slot, returns the result
+- If all 5 slots are occupied, new `pool.run()` calls queue and wait — no dropping
+- Each agent maintains conversation history across multi-turn interactions (`prompt()` vs `run()` distinction: `run()` starts fresh; `prompt()` continues the session)
+
+**Streaming**: Every agent call streams output via `AsyncGenerator<StreamEvent>`. Events: `{ type: 'text', data: string }` for incremental tokens, `{ type: 'tool_call', data: ToolUse }` for tool invocations, `{ type: 'done', data: AgentResult }` for completion. The orchestration engine relays `text` events to the UI immediately — users see ATHENA composing its advisory in real time.
+
+---
+
+### Component 5: Agent Working Memory (Namespaced Shared State)
+
+Working Memory is a session-scoped in-memory store for intermediate agent results. It is distinct from ATHENA's persistent memory files (`memory/*.md`).
+
+**Namespace format**: `agent_name/key`
+- `EconAgent/tariff_impact_model` — EconAgent's output on tariff modeling
+- `DefenseAgent/supply_chain_risk` — DefenseAgent's supply chain assessment
+- `ATHENA-Prime/synthesis_draft` — Intermediate synthesis before Red ATHENA challenge
+
+**Access rules:**
+- Any agent can **read** any key
+- An agent can only **write** keys under its own namespace
+- ConstitutionalGuard can **read** all keys and **flag** any key as constitutionally problematic (write to `ConstitutionalGuard/flags`)
+
+**Auto-summary injection**: Before each task execution, the agent's prompt is prepended with a Working Memory summary:
+
+```
+## Current Working Memory
+### EconAgent:
+- tariff_impact_model: GDP impact -0.3% to -0.8% over 24 months; sectoral breakdown complete
+- key_data_sources: FRED, BEA, IMF WEO
+
+### DefenseAgent:
+- supply_chain_risk: 7 critical supply chains have >40% exposure to tariff targets
+```
+
+This allows downstream agents to build on upstream work without being explicitly coupled to prior tasks.
+
+---
+
+### Component 6: Agent Signal Bus
+
+The Signal Bus is a lightweight pub/sub channel for agent-to-agent signaling — distinct from Working Memory (which stores results) and task dependencies (which enforce ordering).
+
+**Two modes:**
+
+1. **Point-to-point**: `bus.send('EconAgent', 'LegislativeAgent', 'Flag: proposed revenue mechanism conflicts with current reconciliation window. See working memory key EconAgent/reconciliation_analysis.')` — delivers only to the addressed agent on its next prompt injection
+
+2. **Broadcast**: `bus.broadcast('ConstitutionalGuard', 'CONSTITUTIONAL FLAG: Advisory draft contains a recommendation that may violate separation of powers. All agents should note this constraint.')` — delivers to all agents on their next prompt injection
+
+**Audit trail**: All bus messages are persisted to the session audit log with sender, recipient, timestamp, and content. Read-state is tracked (unread/read per recipient).
+
+**Primary use cases in ATHENA:**
+- ConstitutionalGuard broadcasting flags to all agents mid-workflow
+- ATHENA-Prime signaling Red-ATHENA to begin its challenge after synthesis is ready
+- ResearchAgent signaling that a key data source is unavailable (so downstream agents can note the gap)
+
+---
+
+### Component 7: Event-Driven Progress (No Polling)
+
+The orchestration engine emits structured events throughout execution. The UI subscribes to these events rather than polling for status.
+
+**Event types:**
+
+```typescript
+type OrchestratorEvent =
+  | { type: 'task_started';   taskId: string; agent: string; title: string }
+  | { type: 'task_complete';  taskId: string; agent: string; durationMs: number }
+  | { type: 'task_failed';    taskId: string; agent: string; error: string }
+  | { type: 'cascade_failed'; taskIds: string[] }
+  | { type: 'agent_stream';   taskId: string; chunk: string }
+  | { type: 'all_complete';   totalTasks: number; durationMs: number }
+  | { type: 'blocked';        reason: string; needsHuman: string }
+```
+
+The UI renders these events as a live advisory progress view: each agent lights up when active, checks when complete, shows a red X on failure. The `agent_stream` event drives the real-time text rendering in the chat interface.
+
+---
+
+### Summary: What This Changes
+
+| Before (v3) | After (v4 Orchestration Engine) |
+|-------------|--------------------------------|
+| ATHENA-Prime delegates to agents ad hoc | Explicit task DAG decomposed by LLM before any execution begins |
+| No formal dependency tracking | DAG queue with automatic blocking/unblocking and cascade failure |
+| No scheduling strategy | Four strategies; dependency-first default minimizes critical path |
+| No inter-agent shared state | Namespaced Working Memory with auto-summary injection |
+| No inter-agent signaling | Signal Bus with point-to-point and broadcast modes |
+| No concurrency limit | Semaphore(5) prevents API rate-limit thrashing and cost spikes |
+| No progress visibility until delivery | Event stream gives real-time task-by-task progress |
+| Advisory workflow is a black box | Every task, assignment, bus message, and completion is in the audit log |
+
+The orchestration engine is the connective tissue that makes ATHENA's 11 agents behave as a coherent system rather than a collection of individually-callable functions.
 
 ---
 
